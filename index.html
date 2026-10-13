@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OneRoof</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <header>
+    <h1>🏠 OneRoof</h1>
+    <p>Your community platform for housing, food, events, and support</p>
+  </header>
+    <main>
+
+  <!-- LOGIN VIEW (shown by default) -->
+        <section id="login-view" class="card">
+            <h2>Log In</h2>
+            <input type="email"    id="login-email" placeholder="Email" />
+            <input type="password" id="login-pass"  placeholder="Password" />
+            <button id="login-btn">Log In</button>
+            <p id="login-msg" class="msg"></p>
+            <p class="switch-text">
+            Don't have an account?
+            <a href="#" id="show-register">Sign Up</a>
+            </p>
+        </section>
+
+        <!-- REGISTER VIEW (hidden by default) -->
+        <section id="register-view" class="card hidden">
+            <h2>Create an Account</h2>
+            <input type="text"     id="register-name"  placeholder="Full name" />
+            <input type="email"    id="register-email" placeholder="Email" />
+            <input type="password" id="register-pass"  placeholder="Password (min 6 characters)" />
+            <button id="register-btn">Create Account</button>
+            <p id="register-msg" class="msg"></p>
+            <p class="switch-text">
+            Already have an account?
+            <a href="#" id="show-login">Log In</a>
+            </p>
+        </section>
+
+        <!-- DASHBOARD VIEW (shown when logged in) -->
+        <section id="dashboard-section" class="hidden">
+            <div class="card">
+            <h2>Welcome, <span id="user-name">friend</span>! 👋</h2>
+            <p>You are logged in as: <strong id="user-email"></strong></p>
+            <p>This is your OneRoof dashboard. Soon you'll see housing, food, and events here.</p>
+            <button id="logout-btn">Log Out</button>
+            </div>
+        </section>
+
+</main>
+
+
+  <footer>
+    <p>OneRoof — Phase 1 Demo</p>
+  </footer>
+
+  <!-- Firebase SDK (loaded from Google's CDN) -->
+  <script type="module" src="script.js"></script>
+</body>
+</html>
