@@ -1,47 +1,144 @@
-* { box-sizing: border-box; margin: 0; padding: 0; }
+/* ============================================
+   OneRoof — Full Redesign
+   ============================================ */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --brand-primary: #1e6cff;
+  --brand-dark: #0b1e3d;
+  --brand-light: #eaf1ff;
+  --accent-green: #27ae60;
+  --accent-orange: #f39c12;
+  --accent-red: #e74c3c;
+  --gray-50:  #f7f9fc;
+  --gray-100: #eef2f7;
+  --gray-200: #dde3ec;
+  --gray-500: #6b7280;
+  --gray-700: #374151;
+  --gray-900: #111827;
+  --radius: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 10px 32px rgba(0,0,0,0.12);
+}
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #f4f6f8;
-  color: #222;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  background: var(--gray-50);
+  color: var(--gray-900);
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
+/* ============================================
+   HEADER — Sticky navigation bar
+   ============================================ */
 header {
-  background: #2c3e50;
-  color: white;
-  padding: 24px;
-  text-align: center;
+  background: white;
+  border-bottom: 1px solid var(--gray-200);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 14px 24px;
+  box-shadow: var(--shadow-sm);
 }
-header h1 { font-size: 28px; margin-bottom: 4px; }
-header p  { font-size: 14px; opacity: 0.85; }
 
+header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--brand-dark);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+header p {
+  font-size: 13px;
+  color: var(--gray-500);
+  margin-top: 2px;
+}
+
+/* ============================================
+   MAIN LAYOUT — Full-width shell
+   ============================================ */
 main {
-  flex: 1;
-  padding: 32px 16px;
-  max-width: 900px;
+  max-width: 1280px;
   margin: 0 auto;
+  padding: 24px;
   width: 100%;
 }
 
-/* --- Auth cards (login + register) --- */
+/* Two-column layout: content on left, sidebar on right */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   CARDS — the primary content containers
+   ============================================ */
+.card {
+  background: white;
+  padding: 24px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
+  margin-bottom: 20px;
+}
+
+.card h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--brand-dark);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--brand-dark);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ============================================
+   AUTH SCREENS — login & register
+   ============================================ */
 #login-view,
 #register-view {
-  max-width: 420px;
-  margin: 0 auto;
+  max-width: 440px;
+  margin: 40px auto;
 }
 
 .switch-text {
   margin-top: 16px;
   font-size: 14px;
   text-align: center;
-  color: #555;
+  color: var(--gray-500);
 }
 
 .switch-text a {
-  color: #3498db;
+  color: var(--brand-primary);
   text-decoration: none;
   font-weight: 600;
 }
@@ -50,87 +147,386 @@ main {
   text-decoration: underline;
 }
 
-/* Dashboard card */
-#dashboard-section .card {
-  max-width: 500px;
-  margin: 0 auto;
-}
-
-.card {
-  background: white;
-  padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-}
-.card h2 { margin-bottom: 16px; font-size: 20px; }
-
-input {
+/* ============================================
+   FORM ELEMENTS
+   ============================================ */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="datetime-local"],
+textarea,
+select {
   width: 100%;
-  padding: 12px;
+  padding: 12px 14px;
   margin-bottom: 12px;
-  border: 1px solid #ccc;
+  border: 1.5px solid var(--gray-200);
   border-radius: 8px;
   font-size: 15px;
+  font-family: inherit;
+  background: var(--gray-50);
+  transition: border-color 0.15s, background 0.15s;
 }
-input:focus { outline: none; border-color: #3498db; }
 
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(30, 108, 255, 0.1);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-700);
+  margin-bottom: 4px;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
 button {
-  width: 100%;
-  padding: 12px;
-  background: #3498db;
+  padding: 11px 18px;
+  background: var(--brand-primary);
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  transition: background 0.15s, transform 0.05s;
+  font-family: inherit;
 }
-button:hover { background: #2980b9; }
 
+button:hover:not(:disabled) {
+  background: #1658d1;
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Secondary / cancel buttons */
+button[style*="background: #888"],
+button[style*="background:#888"] {
+  background: var(--gray-500) !important;
+}
+button[style*="background: #888"]:hover,
+button[style*="background:#888"]:hover {
+  background: var(--gray-700) !important;
+}
+
+/* ============================================
+   MESSAGES
+   ============================================ */
 .msg {
   margin-top: 10px;
   font-size: 14px;
-  color: #e74c3c;
+  color: var(--accent-red);
   min-height: 18px;
 }
 
-.hidden { display: none !important; }
-
-footer {
-  text-align: center;
-  padding: 16px;
-  font-size: 13px;
-  color: #888;
-}
-/* Interests Grid */
+/* ============================================
+   PROFILE INTERESTS GRID
+   ============================================ */
 .interests-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   margin-top: 8px;
 }
+
 .interests-grid label {
   font-size: 14px;
   display: flex;
   align-items: center;
-  gap: 6px;
-}
-textarea {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 12px;
-  border: 1px solid #ccc;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--gray-50);
+  border: 1.5px solid var(--gray-200);
   border-radius: 8px;
-  font-size: 15px;
-  font-family: inherit;
-  resize: vertical;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  font-weight: 400;
+  margin-bottom: 0;
 }
-.interests-grid label {
+
+.interests-grid label:hover {
+  background: var(--brand-light);
+  border-color: var(--brand-primary);
+}
+
+.interests-grid input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  accent-color: var(--brand-primary);
+}
+
+/* ============================================
+   PROFILE VIEW MODE — read-only display
+   ============================================ */
+#profile-view-mode p {
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+
+#profile-view-mode strong {
+  color: var(--gray-700);
+  display: inline-block;
+  min-width: 90px;
+}
+
+/* ============================================
+   LISTINGS / POSTS / JOBS / HEAR-ME-OUT CARDS
+   ============================================ */
+#listings-grid,
+#posts-grid,
+#jobs-grid,
+#hear-posts-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+/* All dynamic cards rendered by JS */
+#listings-grid > div,
+#posts-grid > div,
+#jobs-grid > div,
+#hear-posts-grid > div {
+  background: white;
+  border: 1.5px solid var(--gray-200);
+  border-radius: 10px;
+  padding: 16px;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+#listings-grid > div:hover,
+#posts-grid > div:hover,
+#jobs-grid > div:hover,
+#hear-posts-grid > div:hover {
+  border-color: var(--brand-primary);
+  box-shadow: var(--shadow-md);
+}
+
+#listings-grid strong,
+#posts-grid strong,
+#jobs-grid strong,
+#hear-posts-grid strong {
+  font-size: 16px;
+  color: var(--brand-dark);
+}
+
+/* ============================================
+   FILTERS (radio buttons for post types)
+   ============================================ */
+input[name="post-filter"] {
+  width: auto;
+  margin-right: 4px;
+  accent-color: var(--brand-primary);
+}
+
+label:has(input[name="post-filter"]) {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 12px;
+  padding: 6px 12px;
+  background: var(--gray-50);
+  border: 1.5px solid var(--gray-200);
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+label:has(input[name="post-filter"]:checked) {
+  background: var(--brand-light);
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  font-weight: 600;
+}
+
+/* ============================================
+   VERIFICATION BANNER & BADGE
+   ============================================ */
+#verified-badge {
+  display: inline-block;
+  background: var(--accent-green);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  vertical-align: middle;
+  margin-left: 8px;
+}
+
+#verify-banner {
+  padding: 14px 16px;
+  background: #fff8e1;
+  border: 1.5px solid #ffc107;
+  border-radius: 10px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+#verify-banner strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #8a6d00;
+}
+
+/* ============================================
+   MOD PANEL
+   ============================================ */
+#mod-panel {
+  border: 2px solid var(--accent-red);
+}
+
+#mod-panel h3 {
+  color: var(--accent-red);
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+footer {
+  text-align: center;
+  padding: 32px 16px;
+  font-size: 13px;
+  color: var(--gray-500);
+  border-top: 1px solid var(--gray-200);
+  background: white;
+  margin-top: 40px;
+}
+
+/* ============================================
+   HIDDEN UTILITY
+   ============================================ */
+.hidden {
+  display: none !important;
+}
+
+/* ============================================
+   RESPONSIVE — mobile
+   ============================================ */
+@media (max-width: 640px) {
+  main { padding: 16px; }
+  .card { padding: 18px; }
+  header h1 { font-size: 20px; }
+  .interests-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================
+   LAYOUT COLUMNS
+   ============================================ */
+.layout-main {
+  min-width: 0; /* prevents grid blowout */
+}
+
+.layout-sidebar {
+  position: sticky;
+  top: 88px; /* below the sticky header */
+}
+
+.layout-sidebar .card {
+  margin-bottom: 20px;
+}
+
+/* ============================================
+   FILTER ROW (Community Posts filter pills)
+   ============================================ */
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.filter-row label {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  padding: 6px 14px;
+  background: var(--gray-50);
+  border: 1.5px solid var(--gray-200);
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0;
+  transition: background 0.15s, border-color 0.15s;
 }
 
-#dashboard-section label input[type="radio"] {
-  margin-right: 4px;
+.filter-row label:has(input:checked) {
+  background: var(--brand-light);
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  font-weight: 600;
+}
+
+.filter-row input[type="radio"] {
+  width: auto;
+  margin: 0;
+  accent-color: var(--brand-primary);
+}
+
+/* ============================================
+   VERIFICATION BANNER (JS-friendly version)
+   ============================================ */
+#verify-banner {
+  margin-top: 12px;
+  padding: 14px 16px;
+  background: #fff8e1;
+  border: 1.5px solid #ffc107;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+#verify-banner strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #8a6d00;
+}
+
+#resend-verify-btn {
+  margin-top: 8px;
+  width: auto;
+  padding: 8px 14px;
+  background: #ffc107;
+  color: #333;
+  font-size: 14px;
+}
+
+#resend-verify-btn:hover:not(:disabled) {
+  background: #e0a800;
+}
+
+/* ============================================
+   EMPTY LISTING / GRID DEFAULTS
+   ============================================ */
+#listings-grid,
+#posts-grid,
+#jobs-grid,
+#hear-posts-grid {
+  margin-top: 16px;
+}
+
+#listings-grid:empty,
+#posts-grid:empty,
+#jobs-grid:empty,
+#hear-posts-grid:empty {
+  margin-top: 0;
 }

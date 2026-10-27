@@ -1,0 +1,136 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f4f6f8;
+  color: #222;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  background: #2c3e50;
+  color: white;
+  padding: 24px;
+  text-align: center;
+}
+header h1 { font-size: 28px; margin-bottom: 4px; }
+header p  { font-size: 14px; opacity: 0.85; }
+
+main {
+  flex: 1;
+  padding: 32px 16px;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* --- Auth cards (login + register) --- */
+#login-view,
+#register-view {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.switch-text {
+  margin-top: 16px;
+  font-size: 14px;
+  text-align: center;
+  color: #555;
+}
+
+.switch-text a {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.switch-text a:hover {
+  text-decoration: underline;
+}
+
+/* Dashboard card */
+#dashboard-section .card {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.card {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+.card h2 { margin-bottom: 16px; font-size: 20px; }
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+}
+input:focus { outline: none; border-color: #3498db; }
+
+button {
+  width: 100%;
+  padding: 12px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+button:hover { background: #2980b9; }
+
+.msg {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #e74c3c;
+  min-height: 18px;
+}
+
+.hidden { display: none !important; }
+
+footer {
+  text-align: center;
+  padding: 16px;
+  font-size: 13px;
+  color: #888;
+}
+/* Interests Grid */
+.interests-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+.interests-grid label {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+textarea {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+  resize: vertical;
+}
+.interests-grid label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#dashboard-section label input[type="radio"] {
+  margin-right: 4px;
+}

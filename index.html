@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OneRoof</title>
+  <title>OneRoof — Community Platform for Students</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -12,189 +12,193 @@
     <h1>🏠 OneRoof</h1>
     <p>Your community platform for housing, food, events, and support</p>
   </header>
-    <main>
 
-  <!-- LOGIN VIEW (shown by default) -->
-        <section id="login-view" class="card">
-            <h2>Log In</h2>
-            <input type="email"    id="login-email" placeholder="Email" />
-            <input type="password" id="login-pass"  placeholder="Password" />
-            <button id="login-btn">Log In</button>
-            <p id="login-msg" class="msg"></p>
-            <p class="switch-text">
-            Don't have an account?
-            <a href="#" id="show-register">Sign Up</a>
-            </p>
-        </section>
+  <main>
 
-        <!-- REGISTER VIEW (hidden by default) -->
-        <section id="register-view" class="card hidden">
-            <h2>Create an Account</h2>
-            <input type="text"     id="register-name"  placeholder="Full name" />
-            <input type="email"    id="register-email" placeholder="Email" />
-            <input type="password" id="register-pass"  placeholder="Password (min 6 characters)" />
-            <button id="register-btn">Create Account</button>
-            <p id="register-msg" class="msg"></p>
-            <p class="switch-text">
-            Already have an account?
-            <a href="#" id="show-login">Log In</a>
-            </p>
-        </section>
+    <!-- ============ LOGIN VIEW ============ -->
+    <section id="login-view" class="card">
+      <h2>Log In</h2>
+      <input type="email"    id="login-email" placeholder="Email" />
+      <input type="password" id="login-pass"  placeholder="Password" />
+      <button id="login-btn">Log In</button>
+      <p id="login-msg" class="msg"></p>
+      <p class="switch-text">
+        Don't have an account?
+        <a href="#" id="show-register">Sign Up</a>
+      </p>
+    </section>
 
-       <!-- DASHBOARD VIEW (shown when logged in) -->
-        <section id="dashboard-section" class="hidden">
-            <div class="card">
-                <h2>Welcome, <span id="user-name">friend</span>! 👋</h2>
-                <p>You are logged in as: <strong id="user-email"></strong></p>
+    <!-- ============ REGISTER VIEW ============ -->
+    <section id="register-view" class="card hidden">
+      <h2>Create an Account</h2>
+      <input type="text"     id="register-name"  placeholder="Full name" />
+      <input type="email"    id="register-email" placeholder="Email" />
+      <input type="password" id="register-pass"  placeholder="Password (min 6 characters)" />
+      <button id="register-btn">Create Account</button>
+      <p id="register-msg" class="msg"></p>
+      <p class="switch-text">
+        Already have an account?
+        <a href="#" id="show-login">Log In</a>
+      </p>
+    </section>
 
-                <span id="verified-badge" class="hidden" style="background:#27ae60;color:white;font-size:12px;padding:3px 8px;border-radius:12px;margin-left:8px;">✅ Verified</span>
+    <!-- ============ DASHBOARD ============ -->
+    <section id="dashboard-section" class="hidden">
+      <div class="layout">
 
-                <div id="verify-banner" class="hidden" style="margin-top:12px;padding:12px;background:#fff3cd;border:1px solid #ffc107;border-radius:8px;font-size:14px;">
-                <strong>⚠️ Please verify your email.</strong>
-                <button id="resend-verify-btn" style="margin-top:8px;width:auto;padding:6px 12px;background:#ffc107;color:#333;">Resend Email</button>
-                <p id="verify-msg" class="msg" style="margin-top:6px;"></p>
-                </div>
+        <!-- ===== MAIN COLUMN ===== -->
+        <div class="layout-main">
 
-            <!-- PROFILE: VIEW MODE (read-only) -->
+          <!-- Welcome + Profile Card -->
+          <div class="card">
+            <h2>Welcome, <span id="user-name">friend</span>! 👋</h2>
+            <p>You are logged in as: <strong id="user-email"></strong></p>
+
+            <!-- Verification badge -->
+            <span id="verified-badge" class="hidden">✅ Verified</span>
+
+            <!-- Verification banner -->
+            <div id="verify-banner" class="hidden">
+              <strong>⚠️ Please verify your email.</strong>
+              <button id="resend-verify-btn">Resend Email</button>
+              <p id="verify-msg" class="msg"></p>
+            </div>
+
+            <!-- PROFILE: VIEW MODE -->
             <div id="profile-view-mode">
-                <h3 style="margin-top: 20px;">Your Profile</h3>
-                <p style="margin-bottom: 8px;"><strong>School:</strong> <span id="view-school">—</span></p>
-                <p style="margin-bottom: 8px;"><strong>City:</strong> <span id="view-city">—</span></p>
-                <p style="margin-bottom: 8px;"><strong>Bio:</strong> <span id="view-bio">—</span></p>
-                <p style="margin-bottom: 8px;"><strong>Interests:</strong> <span id="view-interests">—</span></p>
-                <button id="edit-profile-btn" style="margin-top: 12px;">Edit Profile</button>
+              <h3>Your Profile</h3>
+              <p><strong>School:</strong> <span id="view-school">—</span></p>
+              <p><strong>City:</strong> <span id="view-city">—</span></p>
+              <p><strong>Bio:</strong> <span id="view-bio">—</span></p>
+              <p><strong>Interests:</strong> <span id="view-interests">—</span></p>
+              <button id="edit-profile-btn">Edit Profile</button>
             </div>
 
-            <!-- PROFILE: EDIT MODE (form) -->
+            <!-- PROFILE: EDIT MODE -->
             <div id="profile-edit-mode" class="hidden">
-                <h3 style="margin-top: 20px;">Edit Your Profile</h3>
-                <input type="text" id="profile-school" placeholder="School (e.g., CSU East Bay)">
-                <input type="text" id="profile-city" placeholder="City (e.g., Hayward, CA)">
-                <textarea id="profile-bio" placeholder="Short bio about yourself..." rows="3"></textarea>
+              <h3>Edit Your Profile</h3>
+              <input type="text" id="profile-school" placeholder="School (e.g., CSU East Bay)">
+              <input type="text" id="profile-city" placeholder="City (e.g., Hayward, CA)">
+              <textarea id="profile-bio" placeholder="Short bio about yourself..." rows="3"></textarea>
 
-                <p style="margin-top: 12px; font-weight: bold;">Your Interests:</p>
-                <div class="interests-grid">
-                    <label><input type="checkbox" value="Housing"> Housing</label>
-                    <label><input type="checkbox" value="Food"> Food</label>
-                    <label><input type="checkbox" value="Events"> Events</label>
-                    <label><input type="checkbox" value="Jobs"> Jobs</label>
-                    <label><input type="checkbox" value="Free Items"> Free Items</label>
-                    <label><input type="checkbox" value="Support"> Support</label>
-                </div>
+              <p style="margin-top: 12px; font-weight: bold;">Your Interests:</p>
+              <div class="interests-grid">
+                <label><input type="checkbox" value="Housing"> Housing</label>
+                <label><input type="checkbox" value="Food"> Food</label>
+                <label><input type="checkbox" value="Events"> Events</label>
+                <label><input type="checkbox" value="Jobs"> Jobs</label>
+                <label><input type="checkbox" value="Free Items"> Free Items</label>
+                <label><input type="checkbox" value="Support"> Support</label>
+              </div>
 
-                <button id="save-profile-btn" style="margin-top: 16px;">Save Profile</button>
-                <button id="cancel-profile-btn" style="margin-top: 16px; background: #888;">Cancel</button>
-                <p id="profile-msg" class="msg"></p>
+              <button id="save-profile-btn" style="margin-top: 16px;">Save Profile</button>
+              <button id="cancel-profile-btn" style="margin-top: 16px; background: #888;">Cancel</button>
+              <p id="profile-msg" class="msg"></p>
             </div>
 
-            <!-- LOGOUT BUTTON  -->
             <button id="logout-btn" style="margin-top: 16px; background: #e74c3c;">Log Out</button>
-        
-        </div>
+          </div>
 
-                <!-- SEARCH -->
-        <div class="card" style="margin-top: 24px;">
-          <h3>Search</h3>
-          <input type="text" id="search-input" placeholder="Search listings & posts..." />
-        </div>
+          <!-- Search Card -->
+          <div class="card">
+            <h3>🔍 Search</h3>
+            <input type="text" id="search-input" placeholder="Search listings & posts..." />
+          </div>
 
-        <!-- LISTINGS SECTION -->
-        <div class="card" style="margin-top: 24px;">
-            <h3>Housing & Roommates</h3>
-
-            <!-- Post form -->
+          <!-- Housing & Roommates -->
+          <div class="card">
+            <h3>🏠 Housing & Roommates</h3>
             <input type="text"   id="listing-title"    placeholder="Title (e.g., Room near CSUEB)" />
             <input type="number" id="listing-rent"     placeholder="Monthly rent ($)" />
             <input type="text"   id="listing-location" placeholder="Location (e.g., Hayward, CA)" />
             <textarea            id="listing-desc"     placeholder="Description..." rows="3"></textarea>
             <button id="post-listing-btn">Post Listing</button>
             <p id="listing-msg" class="msg"></p>
-
-            <!-- Listings grid -->
-            <div id="listings-grid" style="margin-top: 20px;"></div>
-        </div>
-
-                <!-- MODERATOR PANEL -->
-        <div id="mod-panel" class="card hidden" style="margin-top: 24px;">
-          <h3>Open Reports</h3>
-          <div id="reports-list"></div>
-          <p id="mod-msg" class="msg"></p>
-        </div>
-
-                <!-- POSTS (Food / Events / Free) -->
-        <div class="card" style="margin-top: 24px;">
-          <h3>Community Posts</h3>
-
-          <select id="post-category">
-            <option value="food">Food & Dining</option>
-            <option value="events">Events</option>
-            <option value="free">Free Items</option>
-          </select>
-
-          <input type="text" id="post-title" placeholder="Title" />
-          <input type="text" id="post-location" placeholder="Location" />
-          <input type="datetime-local" id="post-datetime" class="hidden" />
-          <textarea id="post-desc" placeholder="Description..." rows="3"></textarea>
-
-          <button id="post-submit-btn">Post</button>
-          <p id="post-msg" class="msg"></p>
-
-          <div style="margin-top: 16px;">
-            <label><input type="radio" name="post-filter" value="all" checked> All</label>
-            <label><input type="radio" name="post-filter" value="food"> Food</label>
-            <label><input type="radio" name="post-filter" value="events"> Events</label>
-            <label><input type="radio" name="post-filter" value="free"> Free</label>
+            <div id="listings-grid"></div>
           </div>
 
-          <div id="posts-grid" style="margin-top: 16px;"></div>
-        </div>
+          <!-- Community Posts -->
+          <div class="card">
+            <h3>🍽️ Community Posts</h3>
 
-        <!-- JOB REFERRALS -->
-        <div class="card" style="margin-top: 24px;">
+            <select id="post-category">
+              <option value="food">Food & Dining</option>
+              <option value="events">Events</option>
+              <option value="free">Free Items</option>
+            </select>
+
+            <input type="text" id="post-title" placeholder="Title" />
+            <input type="text" id="post-location" placeholder="Location" />
+            <input type="datetime-local" id="post-datetime" class="hidden" />
+            <textarea id="post-desc" placeholder="Description..." rows="3"></textarea>
+
+            <button id="post-submit-btn">Post</button>
+            <p id="post-msg" class="msg"></p>
+
+            <div class="filter-row">
+              <label><input type="radio" name="post-filter" value="all" checked> All</label>
+              <label><input type="radio" name="post-filter" value="food"> Food</label>
+              <label><input type="radio" name="post-filter" value="events"> Events</label>
+              <label><input type="radio" name="post-filter" value="free"> Free</label>
+            </div>
+
+            <div id="posts-grid"></div>
+          </div>
+
+          <!-- Job Referrals -->
+          <div class="card">
             <h3>💼 Job Referrals</h3>
-
-            <!-- Post form -->
             <input type="text" id="job-title" placeholder="Job title (e.g., Software Engineer Intern)" />
             <input type="text" id="job-company" placeholder="Company (e.g., Google, Kaiser, CSUEB)" />
             <input type="text" id="job-location" placeholder="Location (e.g., San Francisco, Remote)" />
             <textarea id="job-desc" placeholder="Describe the role or why you're referring..." rows="3"></textarea>
             <button id="post-job-btn">Post Referral</button>
             <p id="job-msg" class="msg"></p>
+            <div id="jobs-grid"></div>
+          </div>
 
-            <!-- List of referrals -->
-            <div id="jobs-grid" style="margin-top: 20px;"></div>
-        </div>
-
-        <!-- HEAR ME OUT -->
-        <div class="card" style="margin-top: 24px;">
+          <!-- Hear Me Out -->
+          <div class="card">
             <h3>💬 Hear Me Out</h3>
-            <p style="font-size: 14px; color: #555; margin-bottom: 12px;">
-                A safe space to share what's on your mind. Be kind. Be respectful.
-                <strong>No judgment here.</strong>
+            <p style="font-size: 14px; color: var(--gray-500); margin-bottom: 12px;">
+              A safe space to share what's on your mind. Be kind. Be respectful.
+              <strong>No judgment here.</strong>
             </p>
 
-            <label style="display: block; margin-bottom: 8px; font-size: 14px;">
-                <input type="checkbox" id="anonymous-checkbox" style="width: auto; margin-right: 6px;">
-                Post anonymously
+            <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-weight: 400;">
+              <input type="checkbox" id="anonymous-checkbox" style="width: auto; margin: 0;">
+              Post anonymously
             </label>
 
             <textarea id="hear-desc" placeholder="Share what's on your mind..." rows="4" maxlength="1000"></textarea>
             <button id="hear-post-btn">Share</button>
             <p id="hear-msg" class="msg"></p>
+            <div id="hear-posts-grid"></div>
+          </div>
 
-            <div id="hear-posts-grid" style="margin-top: 20px;"></div>
         </div>
+        <!-- ===== END MAIN COLUMN ===== -->
 
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="layout-sidebar">
+          <div id="mod-panel" class="card hidden">
+            <h3>🚩 Open Reports</h3>
+            <div id="reports-list"></div>
+            <p id="mod-msg" class="msg"></p>
+          </div>
+        </aside>
+        <!-- ===== END SIDEBAR ===== -->
+
+      </div>
     </section>
 
-</main>
-
+  </main>
 
   <footer>
-    <p>OneRoof — Phase 1 Demo</p>
+    <p><strong>🏠 OneRoof</strong> — Built for students and young people in the Bay Area</p>
+    <p style="margin-top: 6px;">Made with ❤️ as a course project</p>
   </footer>
 
-  <!-- Firebase SDK (loaded from Google's CDN) -->
   <script type="module" src="script.js"></script>
 </body>
 </html>
