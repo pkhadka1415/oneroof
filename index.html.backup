@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OneRoof — Community Platform for Students</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ============================================
+       HEADER — logo + nav
+       ============================================ -->
+  <header>
+    <div class="header-inner">
+      <a href="#" class="brand">
+        <span class="brand-logo">🏠</span>
+        <span class="brand-name">OneRoof</span>
+      </a>
+      <nav class="header-nav">
+        <a href="#login-view" class="nav-link" id="show-login">Log In</a>
+        <a href="#register-view" class="nav-btn" id="show-register">Sign Up</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ============================================
+         LANDING PAGE — public, shown before login
+         ============================================ -->
+    <section id="landing-view">
+
+      <!-- HERO -->
+      <div class="hero">
+        <div class="hero-content">
+          <span class="hero-badge">🎓 Built for Bay Area students</span>
+          <h1>Your student community,<br><span class="highlight">all in one roof.</span></h1>
+          <p class="hero-subtitle">
+            Find affordable housing, share meals, discover events, get job referrals, and connect
+            with people who get it — without juggling five different apps.
+          </p>
+          <div class="hero-buttons">
+            <a href="#register-view" class="btn-primary">Sign Up Free</a>
+            <a href="#login-view" class="btn-secondary">Log In</a>
+          </div>
+          <p class="hero-note">Free forever · No ads · For CSU East Bay &amp; Bay Area students</p>
+        </div>
+
+        <div class="hero-visual">
+          <div class="preview-card">
+            <div class="preview-icon">🏠</div>
+            <div>
+              <strong>Room near CSUEB</strong>
+              <p class="preview-meta">$600/mo · Hayward, CA</p>
+              <small class="preview-foot">Posted 2h ago · 3 interested</small>
+            </div>
+          </div>
+          <div class="preview-card">
+            <div class="preview-icon">🍽️</div>
+            <div>
+              <strong>Cooking group Saturday</strong>
+              <p class="preview-meta">Thai food · San Francisco</p>
+              <small class="preview-foot">5 people going</small>
+            </div>
+          </div>
+          <div class="preview-card">
+            <div class="preview-icon">💬</div>
+            <div>
+              <strong>"Finals are rough but I'm pushing through"</strong>
+              <p class="preview-meta">Hear Me Out</p>
+              <small class="preview-foot">🤗 8 · 💪 5 · 💙 12</small>
+            </div>
+          </div>
+          <div class="preview-card">
+            <div class="preview-icon">💼</div>
+            <div>
+              <strong>Referral at Google</strong>
+              <p class="preview-meta">Software Engineer Intern · Mountain View</p>
+              <small class="preview-foot">Posted by a CSUEB alum</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FEATURES -->
+      <div class="features-section">
+        <h2 class="section-title">One platform, four needs</h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">🏠</div>
+            <h3>Housing</h3>
+            <p>Browse rooms, subleases, and roommates near campus. Filter by price and location.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🍽️</div>
+            <h3>Food &amp; Events</h3>
+            <p>Find dining partners, cooking groups, and local events. Save money, meet people.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">💼</div>
+            <h3>Job Referrals</h3>
+            <p>Get referred by community members who know your name — not a stranger.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">💬</div>
+            <h3>Hear Me Out</h3>
+            <p>A safe space to share what's on your mind. Respectful reactions, moderated community.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- FINAL CTA -->
+      <div class="cta-section">
+        <h2>Ready to join?</h2>
+        <p>It takes 30 seconds to create an account. Free for students, always.</p>
+        <a href="#register-view" class="btn-primary">Create Your Account</a>
+      </div>
+
+    </section>
+
+    <!-- ============================================
+         LOGIN VIEW (hidden by default — shown via JS)
+         ============================================ -->
+    <section id="login-view" class="card auth-card hidden">
+      <h2>Welcome back</h2>
+      <p class="auth-subtitle">Log in to your OneRoof account.</p>
+      <input type="email"    id="login-email" placeholder="Email" />
+      <input type="password" id="login-pass"  placeholder="Password" />
+      <button id="login-btn">Log In</button>
+      <p id="login-msg" class="msg"></p>
+      <p class="switch-text">
+        Don't have an account?
+        <a href="#register-view">Sign Up</a>
+      </p>
+    </section>
+
+    <!-- ============================================
+         REGISTER VIEW (hidden by default — shown via JS)
+         ============================================ -->
+    <section id="register-view" class="card auth-card hidden">
+      <h2>Create your account</h2>
+      <p class="auth-subtitle">Join OneRoof and connect with your community.</p>
+      <input type="text"     id="register-name"  placeholder="Full name" />
+      <input type="email"    id="register-email" placeholder="Email" />
+      <input type="password" id="register-pass"  placeholder="Password (min 6 characters)" />
+      <button id="register-btn">Create Account</button>
+      <p id="register-msg" class="msg"></p>
+      <p class="switch-text">
+        Already have an account?
+        <a href="#login-view">Log In</a>
+      </p>
+    </section>
+
+    <!-- ============================================
+         DASHBOARD (unchanged — your existing content)
+         ============================================ -->
+    <section id="dashboard-section" class="hidden">
+      <div class="layout">
+
+        <!-- ===== MAIN COLUMN ===== -->
+        <div class="layout-main">
+
+          <!-- Welcome + Profile Card -->
+          <div class="card">
+            <h2>Welcome, <span id="user-name">friend</span>! 👋</h2>
+            <p>You are logged in as: <strong id="user-email"></strong></p>
+
+            <span id="verified-badge" class="hidden">✅ Verified</span>
+
+            <div id="verify-banner" class="hidden">
+              <strong>⚠️ Please verify your email.</strong>
+              <button id="resend-verify-btn">Resend Email</button>
+              <p id="verify-msg" class="msg"></p>
+            </div>
+
+            <div id="profile-view-mode">
+              <h3>Your Profile</h3>
+              <p><strong>School:</strong> <span id="view-school">—</span></p>
+              <p><strong>City:</strong> <span id="view-city">—</span></p>
+              <p><strong>Bio:</strong> <span id="view-bio">—</span></p>
+              <p><strong>Interests:</strong> <span id="view-interests">—</span></p>
+              <button id="edit-profile-btn">Edit Profile</button>
+            </div>
+
+            <div id="profile-edit-mode" class="hidden">
+              <h3>Edit Your Profile</h3>
+              <input type="text" id="profile-school" placeholder="School (e.g., CSU East Bay)">
+              <input type="text" id="profile-city" placeholder="City (e.g., Hayward, CA)">
+              <textarea id="profile-bio" placeholder="Short bio about yourself..." rows="3"></textarea>
+
+              <p class="interests-label">Your Interests:</p>
+              <div class="interests-grid">
+                <label><input type="checkbox" value="Housing"> Housing</label>
+                <label><input type="checkbox" value="Food"> Food</label>
+                <label><input type="checkbox" value="Events"> Events</label>
+                <label><input type="checkbox" value="Jobs"> Jobs</label>
+                <label><input type="checkbox" value="Free Items"> Free Items</label>
+                <label><input type="checkbox" value="Support"> Support</label>
+              </div>
+
+              <button id="save-profile-btn">Save Profile</button>
+              <button id="cancel-profile-btn" class="btn-muted">Cancel</button>
+              <p id="profile-msg" class="msg"></p>
+            </div>
+
+            <button id="logout-btn" class="btn-danger">Log Out</button>
+          </div>
+
+          <!-- Search -->
+          <div class="card">
+            <h3>🔍 Search</h3>
+            <input type="text" id="search-input" placeholder="Search listings & posts..." />
+          </div>
+
+          <!-- Housing -->
+          <div class="card">
+            <h3>🏠 Housing &amp; Roommates</h3>
+            <input type="text"   id="listing-title"    placeholder="Title (e.g., Room near CSUEB)" />
+            <input type="number" id="listing-rent"     placeholder="Monthly rent ($)" />
+            <input type="text"   id="listing-location" placeholder="Location (e.g., Hayward, CA)" />
+            <textarea            id="listing-desc"     placeholder="Description..." rows="3"></textarea>
+            <button id="post-listing-btn">Post Listing</button>
+            <p id="listing-msg" class="msg"></p>
+            <div id="listings-grid"></div>
+          </div>
+
+          <!-- Community Posts -->
+          <div class="card">
+            <h3>🍽️ Community Posts</h3>
+            <select id="post-category">
+              <option value="food">Food &amp; Dining</option>
+              <option value="events">Events</option>
+              <option value="free">Free Items</option>
+            </select>
+            <input type="text" id="post-title" placeholder="Title" />
+            <input type="text" id="post-location" placeholder="Location" />
+            <input type="datetime-local" id="post-datetime" class="hidden" />
+            <textarea id="post-desc" placeholder="Description..." rows="3"></textarea>
+            <button id="post-submit-btn">Post</button>
+            <p id="post-msg" class="msg"></p>
+
+            <div class="filter-row">
+              <label><input type="radio" name="post-filter" value="all" checked> All</label>
+              <label><input type="radio" name="post-filter" value="food"> Food</label>
+              <label><input type="radio" name="post-filter" value="events"> Events</label>
+              <label><input type="radio" name="post-filter" value="free"> Free</label>
+            </div>
+
+            <div id="posts-grid"></div>
+          </div>
+
+          <!-- Job Referrals -->
+          <div class="card">
+            <h3>💼 Job Referrals</h3>
+            <input type="text" id="job-title" placeholder="Job title (e.g., Software Engineer Intern)" />
+            <input type="text" id="job-company" placeholder="Company (e.g., Google, Kaiser, CSUEB)" />
+            <input type="text" id="job-location" placeholder="Location (e.g., San Francisco, Remote)" />
+            <textarea id="job-desc" placeholder="Describe the role or why you're referring..." rows="3"></textarea>
+            <button id="post-job-btn">Post Referral</button>
+            <p id="job-msg" class="msg"></p>
+            <div id="jobs-grid"></div>
+          </div>
+
+          <!-- Hear Me Out -->
+          <div class="card">
+            <h3>💬 Hear Me Out</h3>
+            <p class="section-hint">
+              A safe space to share what's on your mind. Be kind. Be respectful.
+              <strong>No judgment here.</strong>
+            </p>
+            <label class="checkbox-row">
+              <input type="checkbox" id="anonymous-checkbox">
+              Post anonymously
+            </label>
+            <textarea id="hear-desc" placeholder="Share what's on your mind..." rows="4" maxlength="1000"></textarea>
+            <button id="hear-post-btn">Share</button>
+            <p id="hear-msg" class="msg"></p>
+            <div id="hear-posts-grid"></div>
+          </div>
+
+        </div>
+
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="layout-sidebar">
+          <div id="mod-panel" class="card hidden">
+            <h3>🚩 Open Reports</h3>
+            <div id="reports-list"></div>
+            <p id="mod-msg" class="msg"></p>
+          </div>
+        </aside>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p><strong>🏠 OneRoof</strong> — Built for students and young people in the Bay Area</p>
+    <p class="footer-small">Made with ❤️ as a course project</p>
+  </footer>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>

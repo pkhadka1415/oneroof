@@ -1061,7 +1061,8 @@ onAuthStateChanged(auth, async (user) => {
   } else {
     dashboardSection.classList.add("hidden");
     registerView.classList.add("hidden");
-    loginView.classList.remove("hidden");
+    loginView.classList.add("hidden");     
+    document.getElementById("landing-view").classList.remove("hidden");   
 
     registerName.value = registerEmail.value = registerPass.value = "";
     loginEmail.value   = loginPass.value = "";
