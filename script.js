@@ -48,7 +48,7 @@ const auth = getAuth(app);
 const db = initializeFirestore(app, { experimentalForceLongPolling: true });
 
 // ⚠️ Replace with your moderator UID
-const MOD_UID = "REPLACE_WITH_YOUR_MOD_UID";
+const MOD_UID = "pWAO8vgNpnUSlXi2Qpf9hqRHQmw2";
 
 // ===============================================
 // 2. ELEMENT GRABBER
