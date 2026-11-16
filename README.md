@@ -6,7 +6,7 @@ OneRoof brings housing, food, events, free resources, job referrals, safety aler
 
 ## 🌐 Live Demo
 
-**[Try OneRoof](https://pkhadka1415.github.io/oneroof)**
+**[Try OneRoof](https://pkhadka1415.github.io/oneroof/)**
 
 ## ✨ Features
 
