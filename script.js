@@ -35,12 +35,13 @@ import {
 // 1.1. FIREBASE CONFIG (your real values here)
 // ===============================================
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCl_56G2VXgQfYSdpwzN_4N6TppZQkgJSI",
+  authDomain: "oneroof-86614.firebaseapp.com",
+  projectId: "oneroof-86614",
+  storageBucket: "oneroof-86614.firebasestorage.app",
+  messagingSenderId: "725388800834",
+  appId: "1:725388800834:web:af6c1e289cba255b6c4edb",
+  measurementId: "G-SF9RDBYYG9"
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
