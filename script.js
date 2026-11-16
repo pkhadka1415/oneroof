@@ -35,15 +35,13 @@ import {
 // 1.1. FIREBASE CONFIG (your real values here)
 // ===============================================
 const firebaseConfig = {
-  apiKey: "AIzaSyCl_56G2VXgQfYSdpwzN_4N6TppZQkgJSI",
-  authDomain: "oneroof-86614.firebaseapp.com",
-  projectId: "oneroof-86614",
-  storageBucket: "oneroof-86614.firebasestorage.app",
-  messagingSenderId: "725388800834",
-  appId: "1:725388800834:web:af6c1e289cba255b6c4edb",
-  measurementId: "G-SF9RDBYYG9"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = initializeFirestore(app, { experimentalForceLongPolling: true });
@@ -355,17 +353,12 @@ const forgotPasswordLink = $("forgot-password-link");
 // Add the listener
 forgotPasswordLink?.addEventListener("click", async (e) => {
   e.preventDefault();
-
-  // Get the email the user has already typed in the login form
   const email = loginEmail?.value.trim();
-
   if (!email) {
     setMsg(loginMsg, "Please enter your email address first, then click 'Forgot password'.");
     return;
   }
-
   try {
-    // Firebase function to send the reset email
     await sendPasswordResetEmail(auth, email);
     setMsg(loginMsg, "Password reset email sent! Check your inbox.", "success");
   } catch (error) {
@@ -431,12 +424,10 @@ saveProfileBtn?.addEventListener("click", async () => {
       interests
     }, { merge: true });
 
-    // Update Firebase Auth displayName
     if (newName && newName !== user.displayName) {
       await updateProfile(user, { displayName: newName });
     }
 
-    // Update visible name immediately
     if (userName) userName.textContent = newName || "friend";
     if (headerUserName) headerUserName.textContent = (newName || "User").split(" ")[0];
     if (dropdownName) dropdownName.textContent = newName || "User";
@@ -460,7 +451,6 @@ document.getElementById("delete-account-btn")?.addEventListener("click", async (
   const user = auth.currentUser;
   if (!user) return;
 
-  // Two-step confirmation
   const step1 = confirm(
     "Delete your OneRoof account?\n\n" +
     "This will permanently delete:\n" +
@@ -482,14 +472,9 @@ document.getElementById("delete-account-btn")?.addEventListener("click", async (
   if (btn) { btn.disabled = true; btn.textContent = "Deleting..."; }
 
   try {
-    // 1. Delete user data from Firestore first
     await deleteUserData(user.uid);
-
-    // 2. Then delete the Auth account
     await deleteUser(user);
-
     alert("Your account has been deleted. Goodbye!");
-    // Firebase auto-signs out after deleteUser — landing page will show
   } catch (e) {
     if (e.code === "auth/requires-recent-login") {
       alert("For security, please log out and log back in, then try deleting your account again.");
@@ -505,40 +490,33 @@ document.getElementById("delete-account-btn")?.addEventListener("click", async (
 // ===============================================
 async function deleteUserData(uid) {
   try {
-    // Delete user profile document
     await deleteDoc(doc(db, "users", uid));
 
-    // Delete all listings by this user
     const listings = await getDocs(query(collection(db, "listings"), where("user_id", "==", uid)));
     for (const d of listings.docs) {
       await deleteDoc(doc(db, "listings", d.id));
     }
 
-    // Delete all posts by this user
     const posts = await getDocs(query(collection(db, "posts"), where("host_id", "==", uid)));
     for (const d of posts.docs) {
       await deleteDoc(doc(db, "posts", d.id));
     }
 
-    // Delete all jobs by this user
     const jobs = await getDocs(query(collection(db, "jobs"), where("poster_id", "==", uid)));
     for (const d of jobs.docs) {
       await deleteDoc(doc(db, "jobs", d.id));
     }
 
-    // Delete all hear_me_out posts by this user
     const hear = await getDocs(query(collection(db, "hear_me_out"), where("author_id", "==", uid)));
     for (const d of hear.docs) {
       await deleteDoc(doc(db, "hear_me_out", d.id));
     }
 
-    // Delete all crime alerts by this user
     const alerts = await getDocs(query(collection(db, "crime_alerts"), where("reporter_id", "==", uid)));
     for (const d of alerts.docs) {
       await deleteDoc(doc(db, "crime_alerts", d.id));
     }
 
-    // Delete all messages sent/received
     const sentMsgs = await getDocs(query(collection(db, "messages"), where("from_user", "==", uid)));
     for (const d of sentMsgs.docs) {
       await deleteDoc(doc(db, "messages", d.id));
@@ -548,7 +526,6 @@ async function deleteUserData(uid) {
       await deleteDoc(doc(db, "messages", d.id));
     }
 
-    // Delete vouches received and given
     const receivedVouches = await getDocs(query(collection(db, "vouches"), where("to_user", "==", uid)));
     for (const d of receivedVouches.docs) {
       await deleteDoc(doc(db, "vouches", d.id));
@@ -559,19 +536,14 @@ async function deleteUserData(uid) {
     }
   } catch (e) {
     console.warn("Data deletion error:", e.message);
-    // Don't block account deletion if some data fails — proceed anyway
   }
 }
 
 function renderProfileView() {
-  // School and city
   if (viewSchool) viewSchool.textContent = profileSchool?.value.trim() || "School not set";
   if (viewCity) viewCity.textContent = profileCity?.value.trim() || "City not set";
-
-  // Bio / intro
   if (viewBio) viewBio.textContent = profileBio?.value.trim() || "No intro yet.";
 
-  // Interests as pills
   const interests = [];
   document.querySelectorAll(".interests-grid input:checked").forEach((cb) => interests.push(cb.value));
   const interestsEl = document.getElementById("view-interests");
@@ -609,7 +581,6 @@ async function loadProfile(user) {
       profileEditMode?.classList.add("hidden");
       profileViewMode?.classList.remove("hidden");
 
-      // Load counts
       try {
         const [followerSnap, followingSnap, vouchSnap, listingsSnap, postsSnap, jobsSnap] = await Promise.all([
           getDocs(query(collection(db, "follows"), where("following_id", "==", user.uid))),
@@ -661,35 +632,6 @@ function updateVerificationUI(user) {
     verifyInline?.classList.remove("hidden");
   }
 }
-
-const deleteAccountBtn = $("delete-account-btn");
-
-deleteAccountBtn?.addEventListener("click", async () => {
-  const user = auth.currentUser;
-  if (!user) return;
-
-  // 1. Simple confirmation
-  const confirmed = confirm(
-    "Delete your OneRoof account?\n\n" +
-    "This will permanently delete your profile, posts, messages, and vouches.\n\n" +
-    "This cannot be undone. Are you sure?"
-  );
-  if (!confirmed) return;
-
-  try {
-    // 2. The actual deletion
-    await deleteUser(user);
-    alert("Your account has been deleted.");
-    // Firebase will automatically sign the user out
-  } catch (error) {
-    // 3. Handle the "requires-recent-login" error
-    if (error.code === "auth/requires-recent-login") {
-      alert("For security, please log out and log back in, then try deleting your account again.");
-    } else {
-      alert("Error deleting account: " + error.message);
-    }
-  }
-});
 
 // ===============================================
 // 8. DASHBOARD PAGE NAVIGATION
@@ -755,6 +697,7 @@ async function openUserProfile(uid, name) {
 
   currentProfileUid = uid;
   currentProfileName = name || "user";
+  console.log("🔵 openUserProfile — currentProfileUid:", currentProfileUid, "name:", currentProfileName);
 
   document.getElementById("modal-user-name").textContent = name || "User";
   document.getElementById("modal-user-subtitle").textContent = "Loading...";
@@ -808,15 +751,12 @@ async function openUserProfile(uid, name) {
     console.error("Profile load error:", e);
   }
 
-  // ===============================================
   // FOLLOW BUTTON
-  // ===============================================
   const followBtn = document.getElementById("modal-follow-btn");
 
   if (followBtn && auth.currentUser && auth.currentUser.uid !== uid) {
     followBtn.classList.remove("hidden");
 
-    // Check if already following
     const followQuery = query(
       collection(db, "follows"),
       where("follower_id", "==", auth.currentUser.uid),
@@ -825,11 +765,9 @@ async function openUserProfile(uid, name) {
     const followSnap = await getDocs(followQuery);
     const isFollowing = !followSnap.empty;
 
-    // Update button state
     followBtn.textContent = isFollowing ? "✓ Following" : "+ Follow";
     followBtn.className = isFollowing ? "btn-muted" : "";
 
-    // Remove old listeners (clone/replace to avoid duplicates)
     const newFollowBtn = followBtn.cloneNode(true);
     followBtn.parentNode.replaceChild(newFollowBtn, followBtn);
 
@@ -837,14 +775,12 @@ async function openUserProfile(uid, name) {
       newFollowBtn.disabled = true;
       try {
         if (isFollowing) {
-          // Unfollow
           for (const doc of followSnap.docs) {
             await deleteDoc(doc(db, "follows", doc.id));
           }
           newFollowBtn.textContent = "+ Follow";
           newFollowBtn.className = "";
         } else {
-          // Follow
           await addDoc(collection(db, "follows"), {
             follower_id: auth.currentUser.uid,
             following_id: uid,
@@ -863,7 +799,6 @@ async function openUserProfile(uid, name) {
     followBtn.classList.add("hidden");
   }
 
-  // Follower/following counts
   try {
     const followerSnap = await getDocs(
       query(collection(db, "follows"), where("following_id", "==", uid))
@@ -891,19 +826,26 @@ document.getElementById("user-profile-modal")?.addEventListener("click", (e) => 
   if (e.target.id === "user-profile-modal") closeUserProfile();
 });
 
+// ✅ FIXED: modal-message-btn — saves uid BEFORE closing
 document.getElementById("modal-message-btn")?.addEventListener("click", () => {
   if (!currentProfileUid) return;
+  const uid = currentProfileUid;
+  const name = currentProfileName;
   closeUserProfile();
   openMessageDialog({
-    to_user: currentProfileUid,
-    to_name: currentProfileName,
+    to_user: uid,
+    to_name: name,
     post_id: "",
     post_title: ""
   });
 });
 
+// ✅ FIXED: modal-report-btn — saves uid BEFORE closing
 document.getElementById("modal-report-btn")?.addEventListener("click", () => {
   if (!currentProfileUid) return;
+  const uid = currentProfileUid;
+  const name = currentProfileName;
+
   const reason = prompt(
     "Report this user?\n\n1. Spam\n2. Scam\n3. Inappropriate\n4. Harassment\n5. Other\n\nEnter number (1-5):"
   );
@@ -915,10 +857,10 @@ document.getElementById("modal-report-btn")?.addEventListener("click", () => {
   addDoc(collection(db, "reports"), {
     reporter_id: auth.currentUser.uid,
     reporter_email: auth.currentUser.email || "",
-    post_id: currentProfileUid,
+    post_id: uid,
     post_type: "profile",
-    post_title: `User: ${currentProfileName}`,
-    post_owner_id: currentProfileUid,
+    post_title: `User: ${name}`,
+    post_owner_id: uid,
     reason: reasons[idx],
     status: "open",
     createdAt: Date.now()
@@ -933,11 +875,14 @@ document.getElementById("modal-report-btn")?.addEventListener("click", () => {
 // ===============================================
 // 10. VOUCH SYSTEM — diamonds + vouches
 // ===============================================
+
+// ✅ FIXED: modal-vouch-btn — saves uid BEFORE closing
 document.getElementById("modal-vouch-btn")?.addEventListener("click", () => {
   if (!currentProfileUid) return;
+  const uid = currentProfileUid;
   const name = currentProfileName;
   closeUserProfile();
-  openVouchDialog(currentProfileUid, name);
+  openVouchDialog(uid, name);
 });
 
 const VOUCH_CONTEXTS = {
@@ -1029,6 +974,10 @@ let selectedDiamonds = 0;
 let currentVouchTarget = null;
 
 function openVouchDialog(uid, name) {
+  if (!uid) {
+    alert("Cannot vouch — user not found.");
+    return;
+  }
   if (!auth.currentUser || auth.currentUser.uid === uid) {
     alert("You can't vouch for yourself.");
     return;
@@ -1041,13 +990,11 @@ function openVouchDialog(uid, name) {
   if (title) title.textContent = `Vouch for ${name || "this person"}`;
   if (dialog) dialog.classList.remove("hidden");
 
-  // Reset the diamond picker
   selectedDiamonds = 0;
   document.querySelectorAll("#diamond-picker .diamond-btn").forEach((b) => b.classList.remove("selected"));
   const label = document.getElementById("diamond-value-label");
   if (label) label.textContent = "0/5";
 
-  // Reset the form
   const msg = document.getElementById("vouch-msg");
   if (msg) msg.textContent = "";
   const msgText = document.getElementById("vouch-message");
@@ -1059,7 +1006,6 @@ function closeVouchDialog() {
   currentVouchTarget = null;
 }
 
-// Diamond picker — click to select
 document.querySelectorAll("#diamond-picker .diamond-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
     selectedDiamonds = Number(btn.dataset.value);
@@ -1072,7 +1018,6 @@ document.querySelectorAll("#diamond-picker .diamond-btn").forEach((btn) => {
   });
 });
 
-// Submit vouch
 document.getElementById("vouch-submit-btn")?.addEventListener("click", async () => {
   if (!currentVouchTarget) return;
   const user = auth.currentUser;
@@ -1114,7 +1059,6 @@ document.getElementById("vouch-submit-btn")?.addEventListener("click", async () 
   }
 });
 
-// Cancel button
 document.getElementById("vouch-cancel-btn")?.addEventListener("click", closeVouchDialog);
 document.getElementById("vouch-dialog")?.addEventListener("click", (e) => {
   if (e.target.id === "vouch-dialog") closeVouchDialog();
@@ -1244,7 +1188,6 @@ async function loadMessages() {
         <div class="msg-body">${escapeHtml(m.message)}</div>
       `;
 
-      // Reply button — no count, just "Reply"
       const replyBtn = document.createElement("button");
       replyBtn.textContent = "💬 Reply";
       replyBtn.className = "message-btn";
@@ -1360,7 +1303,6 @@ async function loadListings() {
 
       addPosterLine(card, l.user_id, l.owner_name);
 
-      // If own listing → Delete button
       if (auth.currentUser && l.user_id === auth.currentUser.uid) {
         const del = document.createElement("button");
         del.textContent = "Delete";
@@ -1371,10 +1313,8 @@ async function loadListings() {
           loadListings();
         });
         card.appendChild(del);
-        // Inside loadListings, the else block (not own listing):
-
       } else {
-        const commentCount = l.comment_count || 0;   // ← adjust field name if needed
+        const commentCount = l.comment_count || 0;
 
         const replyBtn = document.createElement("button");
         replyBtn.textContent = `💬 ${commentCount}`;
@@ -1388,7 +1328,6 @@ async function loadListings() {
         });
         card.appendChild(replyBtn);
 
-        // Interested button — unchanged
         const attendees = l.attendees || [];
         const alreadyInterested = auth.currentUser && attendees.includes(auth.currentUser.uid);
         const interestedBtn = document.createElement("button");
@@ -1405,7 +1344,6 @@ async function loadListings() {
         });
         card.appendChild(interestedBtn);
 
-        // Add comment section
         addCommentSection(card, "listings", d.id, l.title);
       }
 
@@ -1446,7 +1384,6 @@ async function postGeneric(category, subtype, titleVal, locationVal, descVal, da
       createdAt: Date.now()
     };
 
-    // Add the correct type field based on category
     if (category === "food") payload.food_type = subtype;
     if (category === "events") {
       payload.event_type = subtype;
@@ -1519,7 +1456,6 @@ async function loadCategoryPosts(category, gridEl) {
       const alreadyGoing = auth.currentUser && goingList.includes(auth.currentUser.uid);
       const dateLine = p.datetime ? `<div class="item-meta">🕒 ${escapeHtml(p.datetime)}</div>` : "";
 
-      // Type badge
       let typeBadge = "";
       if (category === "food" && p.food_type) {
         const labels = {
@@ -1556,7 +1492,6 @@ async function loadCategoryPosts(category, gridEl) {
       addPosterLine(card, p.host_id, p.host_name);
 
       if (!isHost) {
-        // Reply button (comment count)
         const replyBtn = document.createElement("button");
         replyBtn.textContent = `💬 ${p.comment_count || 0}`;
         replyBtn.className = "btn-small";
@@ -1569,7 +1504,6 @@ async function loadCategoryPosts(category, gridEl) {
         });
         card.appendChild(replyBtn);
 
-        // Interested button — hidden for recommendations / recipe-ideas
         const isQandA = (
           (category === "food" && ["recommendations", "recipe-ideas"].includes(p.food_type)) ||
           (category === "events" && p.event_type === "recommendations")
@@ -1591,7 +1525,6 @@ async function loadCategoryPosts(category, gridEl) {
           card.appendChild(interestedBtn);
         }
 
-        // Going button — only for events that aren't recommendations or activity-partner
         if (category === "events" && !["recommendations", "activity-partner"].includes(p.event_type)) {
           const goingBtn = document.createElement("button");
           goingBtn.textContent = alreadyGoing ? "✨ Going ✓" : "✨ Going";
@@ -1619,7 +1552,6 @@ async function loadCategoryPosts(category, gridEl) {
         card.appendChild(del);
       }
 
-      // Comment section
       addCommentSection(card, "posts", d.id);
 
       gridEl.appendChild(card);
@@ -1668,9 +1600,6 @@ helpTypePicker?.querySelectorAll(".type-pill").forEach((btn) => {
   });
 });
 
-// ===============================================
-// FOOD TYPE PICKER
-// ===============================================
 const foodTypePicker = $("food-type-picker");
 let selectedFoodType = "dining-out";
 
@@ -1692,9 +1621,6 @@ foodTypePicker?.querySelectorAll(".type-pill").forEach((btn) => {
   });
 });
 
-// ===============================================
-// EVENT TYPE PICKER
-// ===============================================
 const eventTypePicker = $("event-type-picker");
 let selectedEventType = "going-out";
 
@@ -1714,7 +1640,6 @@ eventTypePicker?.querySelectorAll(".type-pill").forEach((btn) => {
     const titleInput = document.getElementById("event-title");
     if (titleInput) titleInput.placeholder = placeholders[selectedEventType] || "Title";
 
-    // Hide datetime for recommendations and activity partner
     const datetimeInput = document.getElementById("event-datetime");
     if (datetimeInput) {
       datetimeInput.style.display = ["recommendations", "activity-partner"].includes(selectedEventType)
@@ -1806,7 +1731,6 @@ async function loadFree() {
       addPosterLine(card, p.host_id, p.host_name);
 
       if (!isHost) {
-        // Reply button
         const replyBtn = document.createElement("button");
         replyBtn.textContent = `💬 ${p.comment_count || 0}`;
         replyBtn.className = "btn-small";
@@ -1819,7 +1743,6 @@ async function loadFree() {
         });
         card.appendChild(replyBtn);
 
-        // Interested button
         const interestedBtn = document.createElement("button");
         interestedBtn.textContent = alreadyInterested ? "👍 Interested ✓" : "👍 Interested";
         interestedBtn.disabled = alreadyInterested;
@@ -1845,7 +1768,6 @@ async function loadFree() {
         card.appendChild(del);
       }
 
-      // Comment section
       addCommentSection(card, "posts", d.id);
 
       grid.appendChild(card);
@@ -1940,7 +1862,6 @@ async function loadJobs() {
       addPosterLine(card, j.poster_id, j.poster_name);
 
       if (!isMine) {
-        // Reply button
         const replyBtn = document.createElement("button");
         replyBtn.textContent = `💬 ${j.comment_count || 0}`;
         replyBtn.className = "btn-small";
@@ -1953,7 +1874,6 @@ async function loadJobs() {
         });
         card.appendChild(replyBtn);
 
-        // Interested button
         const interestedBtn = document.createElement("button");
         interestedBtn.textContent = alreadyInterested ? "👍 Interested ✓" : "👍 Interested";
         interestedBtn.disabled = alreadyInterested;
@@ -1979,7 +1899,6 @@ async function loadJobs() {
         card.appendChild(del);
       }
 
-      // Comment section
       addCommentSection(card, "jobs", d.id);
 
       jobsGrid.appendChild(card);
@@ -2060,7 +1979,6 @@ async function loadHear() {
       `;
 
       if (!isMine) {
-        // Reply button
         const replyBtn = document.createElement("button");
         replyBtn.textContent = `💬 ${h.comment_count || 0}`;
         replyBtn.className = "btn-small";
@@ -2073,7 +1991,6 @@ async function loadHear() {
         });
         card.appendChild(replyBtn);
 
-        // Like button
         const likeBtn = document.createElement("button");
         likeBtn.textContent = alreadyLiked ? "❤️ Liked ✓" : "❤️ Like";
         likeBtn.disabled = alreadyLiked;
@@ -2099,7 +2016,6 @@ async function loadHear() {
         card.appendChild(del);
       }
 
-      // Comment section
       addCommentSection(card, "hear_me_out", d.id);
 
       hearPostsGrid.appendChild(card);
@@ -2201,7 +2117,6 @@ async function loadAlerts() {
       `;
 
       if (!isMine) {
-        // Reply button
         const replyBtn = document.createElement("button");
         replyBtn.textContent = `💬 ${a.comment_count || 0}`;
         replyBtn.className = "btn-small";
@@ -2214,7 +2129,6 @@ async function loadAlerts() {
         });
         card.appendChild(replyBtn);
 
-        // Like button
         const likeBtn = document.createElement("button");
         likeBtn.textContent = alreadyLiked ? "❤️ Liked ✓" : "❤️ Like";
         likeBtn.disabled = alreadyLiked;
@@ -2229,7 +2143,6 @@ async function loadAlerts() {
         });
         card.appendChild(likeBtn);
 
-        // Aware button
         const awareBtn = document.createElement("button");
         awareBtn.textContent = alreadyAware ? "👍 Aware ✓" : "👍 Aware";
         awareBtn.disabled = alreadyAware;
@@ -2255,7 +2168,6 @@ async function loadAlerts() {
         card.appendChild(del);
       }
 
-      // Comment section
       addCommentSection(card, "crime_alerts", d.id);
 
       alertsGrid.appendChild(card);
@@ -2268,6 +2180,7 @@ async function loadAlerts() {
     alertsGrid.innerHTML = `<p style="color:var(--error);">Error: ${escapeHtml(e.message)}</p>`;
   }
 }
+
 // ===============================================
 // 18. MODERATION
 // ===============================================
@@ -2354,6 +2267,7 @@ async function updateHubCounts() {
     console.warn("Hub counts error:", e.message);
   }
 }
+
 // ===============================================
 // COMMENTS — with nested replies
 // ===============================================
@@ -2389,11 +2303,10 @@ function addCommentSection(card, collectionName, postId) {
         author_id: user.uid,
         author_name: user.displayName || "user",
         text,
-        parent_id: null,                    // top-level comment
+        parent_id: null,
         createdAt: Date.now()
       });
 
-      // Increment comment_count on the parent post
       try {
         await updateDoc(doc(db, collectionName, postId), {
           comment_count: increment(1)
@@ -2406,7 +2319,7 @@ function addCommentSection(card, collectionName, postId) {
       alert("Error: " + e.message);
     } finally {
       sendBtn.disabled = false;
-      sendBtn.textContent = "Send";
+      sendBtn.textContent = "Reply";
     }
   });
 }
@@ -2429,14 +2342,12 @@ async function loadComments(container, collectionName, postId) {
       return;
     }
 
-    // Separate top-level comments and replies
     const allComments = [];
     snap.forEach((d) => allComments.push({ id: d.id, ...d.data() }));
 
     const topLevel = allComments.filter((c) => !c.parent_id);
     const replies = allComments.filter((c) => c.parent_id);
 
-    // Render top-level comments with their replies
     topLevel.forEach((c) => {
       const item = renderCommentItem(c, replies, collectionName, postId, container);
       list.appendChild(item);
@@ -2460,10 +2371,8 @@ function renderCommentItem(comment, allReplies, collectionName, postId, containe
     <button class="comment-reply-btn">Reply</button>
   `;
 
-  // Reply button — shows a reply form under this comment
   const replyBtn = row.querySelector(".comment-reply-btn");
   replyBtn.addEventListener("click", () => {
-    // Toggle the reply form
     let form = row.querySelector(".reply-form");
     if (form) {
       form.remove();
@@ -2494,7 +2403,7 @@ function renderCommentItem(comment, allReplies, collectionName, postId, containe
           author_id: auth.currentUser.uid,
           author_name: auth.currentUser.displayName || "user",
           text,
-          parent_id: comment.id,           // ← this is a reply to the comment
+          parent_id: comment.id,
           createdAt: Date.now()
         });
 
@@ -2514,7 +2423,6 @@ function renderCommentItem(comment, allReplies, collectionName, postId, containe
     });
   });
 
-  // Render replies nested under this comment
   const commentReplies = allReplies.filter((r) => r.parent_id === comment.id);
   if (commentReplies.length > 0) {
     const repliesWrapper = document.createElement("div");
@@ -2539,6 +2447,7 @@ function renderCommentItem(comment, allReplies, collectionName, postId, containe
 
   return row;
 }
+
 // ===============================================
 // 20. AUTH STATE WATCHER
 // ===============================================
@@ -2546,7 +2455,7 @@ onAuthStateChanged(auth, async (user) => {
   if (user) {
     showDashboard();
 
-    if (userName) userName.textContent = user.displayName || "Wellcome";
+    if (userName) userName.textContent = user.displayName || "Welcome";
     document.getElementById("verified-badge")?.classList.add("hidden");
     document.getElementById("unverified-badge")?.classList.add("hidden");
     if (userEmail) userEmail.textContent = user.email;
