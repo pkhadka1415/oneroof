@@ -6,7 +6,7 @@ OneRoof brings housing, food, events, free resources, job referrals, safety aler
 
 ## 🌐 Live Demo
 
-**[Try OneRoof](https://YOUR_USERNAME.github.io/oneroof/)**
+**[Try OneRoof](https://pkhadka1415.github.io/oneroof/)**
 
 ## ✨ Features
 
@@ -72,5 +72,5 @@ Report inappropriate content. Moderators review reports and resolve them. Commun
 
 1. Clone this repo:
 ```bash
-git clone https://github.com/YOUR_USERNAME/oneroof.git
+git clone https://github.com/pkhadka1415/oneroof.git
 cd oneroof
