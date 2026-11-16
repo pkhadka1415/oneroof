@@ -1,5 +1,5 @@
 // ===============================================
-// 1. IMPORT FIREBASE MODULES
+// 1. IMPORTS + FIREBASE SETUP
 // ===============================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
@@ -9,28 +9,30 @@ import {
   signOut,
   onAuthStateChanged,
   updateProfile,
-  sendEmailVerification
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  deleteUser
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
 import {
   initializeFirestore,
   doc,
   setDoc,
   getDoc,
   getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
   collection,
   query,
-  orderBy,
-  deleteDoc,
   where,
-  limit, 
-  addDoc,
+  orderBy,
+  limit,
   arrayUnion,
-  updateDoc
+  increment
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // ===============================================
-// 2. FIREBASE CONFIG (your real values here)
+// 1.1. FIREBASE CONFIG (your real values here)
 // ===============================================
 const firebaseConfig = {
   apiKey: "AIzaSyCl_56G2VXgQfYSdpwzN_4N6TppZQkgJSI",
@@ -42,139 +44,286 @@ const firebaseConfig = {
   measurementId: "G-SF9RDBYYG9"
 };
 
-// ===============================================
-// 3. INIT
-// ===============================================
-const app  = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db   = initializeFirestore(app, {experimentalForceLongPolling:true});
+const db = initializeFirestore(app, { experimentalForceLongPolling: true });
+
+// ⚠️ Replace with your moderator UID
+const MOD_UID = "REPLACE_WITH_YOUR_MOD_UID";
 
 // ===============================================
-// 4. GRAB ELEMENTS
+// 2. ELEMENT GRABBER
 // ===============================================
+const $ = (id) => document.getElementById(id);
 
-const loginView        = document.getElementById("login-view");
-const registerView     = document.getElementById("register-view");
-const dashboardSection = document.getElementById("dashboard-section");
+// Views
+const landingView = $("landing-view");
+const loginView = $("login-view");
+const registerView = $("register-view");
+const dashboardView = $("dashboard-section");
 
-const registerName  = document.getElementById("register-name");
-const registerEmail = document.getElementById("register-email");
-const registerPass  = document.getElementById("register-pass");
-const registerBtn   = document.getElementById("register-btn");
-const registerMsg   = document.getElementById("register-msg");
+// Header
+const searchToggleBtn = $("search-toggle-btn");
+const searchWrap = $("header-search-wrap");
+const searchCloseBtn = $("search-close-btn");
+const headerSearch = $("header-search-input");
+const headerNavOut = $("header-nav-out");
+const headerNavIn = $("header-nav-in");
+const profileMenuBtn = $("profile-menu-btn");
+const profileDropdown = $("profile-dropdown");
+const headerUserName = $("header-user-name");
+const dropdownName = $("dropdown-name");
+const dropdownEmail = $("dropdown-email");
+const brandHomeLink = $("brand-home-link");
 
-const loginEmail = document.getElementById("login-email");
-const loginPass  = document.getElementById("login-pass");
-const loginBtn   = document.getElementById("login-btn");
-const loginMsg   = document.getElementById("login-msg");
+// Landing
+const heroSignupBtn = $("hero-signup-btn");
+const heroLoginBtn = $("hero-login-btn");
+const ctaSignupBtn = $("cta-signup-btn");
 
-const showRegisterLink = document.getElementById("show-register");
-const showLoginLink    = document.getElementById("show-login");
+// Auth
+const loginEmail = $("login-email");
+const loginPass = $("login-pass");
+const loginBtn = $("login-btn");
+const loginMsg = $("login-msg");
+const registerName = $("register-name");
+const registerEmail = $("register-email");
+const registerPass = $("register-pass");
+const registerBtn = $("register-btn");
+const registerMsg = $("register-msg");
+const showRegisterLink = $("show-register");
+const showLoginLink = $("show-login");
+const backFromLogin = $("show-landing-from-login");
+const backFromRegister = $("show-landing-from-register");
 
-const userName  = document.getElementById("user-name");
-const userEmail = document.getElementById("user-email");
-const logoutBtn = document.getElementById("logout-btn");
+// Profile
+const userName = $("user-name");
+const userEmail = $("user-email");
+const verifiedBadge = $("verified-badge");
+const verifyBanner = $("verify-banner");
+const resendVerifyBtn = $("resend-verify-btn");
+const verifyMsg = $("verify-msg");
+const profileViewMode = $("profile-view-mode");
+const profileEditMode = $("profile-edit-mode");
+const editProfileBtn = $("edit-profile-btn");
+const cancelProfileBtn = $("cancel-profile-btn");
+const saveProfileBtn = $("save-profile-btn");
+const profileName = $("profile-name");
+const profileSchool = $("profile-school");
+const profileCity = $("profile-city");
+const profileBio = $("profile-bio");
+const profileMsg = $("profile-msg");
+const viewSchool = $("view-school");
+const viewCity = $("view-city");
+const viewBio = $("view-bio");
+const viewInterests = $("view-interests");
 
-const profileSchool  = document.getElementById("profile-school");
-const profileCity    = document.getElementById("profile-city");
-const profileBio     = document.getElementById("profile-bio");
-const saveProfileBtn = document.getElementById("save-profile-btn");
-const profileMsg     = document.getElementById("profile-msg");
+// Housing
+const housingType = $("housing-type");
+const listingTitle = $("listing-title");
+const listingRent = $("listing-rent");
+const listingLocation = $("listing-location");
+const listingDesc = $("listing-desc");
+const postListingBtn = $("post-listing-btn");
+const listingMsg = $("listing-msg");
+const listingsGrid = $("listings-grid");
 
-const profileViewMode  = document.getElementById("profile-view-mode");
-const profileEditMode  = document.getElementById("profile-edit-mode");
-const editProfileBtn   = document.getElementById("edit-profile-btn");
-const cancelProfileBtn = document.getElementById("cancel-profile-btn");
+// Food
+const foodType = $("food-type");
+const foodTitle = $("food-title");
+const foodLocation = $("food-location");
+const foodDatetime = $("food-datetime");
+const foodDesc = $("food-desc");
+const postFoodBtn = $("post-food-btn");
+const foodMsg = $("food-msg");
+const foodGrid = $("food-grid");
 
-const viewSchool    = document.getElementById("view-school");
-const viewCity      = document.getElementById("view-city");
-const viewBio       = document.getElementById("view-bio");
-const viewInterests = document.getElementById("view-interests");
+// Events
+const eventTitle = $("event-title");
+const eventLocation = $("event-location");
+const eventDatetime = $("event-datetime");
+const eventDesc = $("event-desc");
+const postEventBtn = $("post-event-btn");
+const eventMsg = $("event-msg");
+const eventsGrid = $("events-grid");
 
-const listingTitle    = document.getElementById("listing-title");
-const listingRent     = document.getElementById("listing-rent");
-const listingLocation = document.getElementById("listing-location");
-const listingDesc     = document.getElementById("listing-desc");
-const postListingBtn  = document.getElementById("post-listing-btn");
-const listingMsg      = document.getElementById("listing-msg");
-const listingsGrid    = document.getElementById("listings-grid");
+// Free & Help
+const postFreeBtn = $("post-free-btn");
+const freeTitle = $("free-title");
+const freeLocation = $("free-location");
+const freeDesc = $("free-desc");
+const freeMsg = $("free-msg");
+const freeGrid = $("free-grid");
+const helpTypePicker = $("help-type-picker");
 
-const modPanel = document.getElementById("mod-panel");
-const reportsList = document.getElementById("reports-list");
-const modMsg = document.getElementById("mod-msg");
+// Jobs
+const jobIndustry = $("job-industry");
+const jobTitle = $("job-title");
+const jobCompany = $("job-company");
+const jobLocation = $("job-location");
+const jobDesc = $("job-desc");
+const postJobBtn = $("post-job-btn");
+const jobMsg = $("job-msg");
+const jobsGrid = $("jobs-grid");
 
-const postCategory = document.getElementById("post-category");
-const postTitle    = document.getElementById("post-title");
-const postLocation = document.getElementById("post-location");
-const postDatetime = document.getElementById("post-datetime");
-const postDesc     = document.getElementById("post-desc");
-const postSubmitBtn = document.getElementById("post-submit-btn");
-const postMsg      = document.getElementById("post-msg");
-const postsGrid    = document.getElementById("posts-grid");
+// Hear Me Out
+const anonymousCheckbox = $("anonymous-checkbox");
+const hearDesc = $("hear-desc");
+const hearPostBtn = $("hear-post-btn");
+const hearMsg = $("hear-msg");
+const hearPostsGrid = $("hear-posts-grid");
 
-// Job referral elements
-const jobTitle    = document.getElementById("job-title");
-const jobCompany  = document.getElementById("job-company");
-const jobLocation = document.getElementById("job-location");
-const jobDesc     = document.getElementById("job-desc");
-const postJobBtn  = document.getElementById("post-job-btn");
-const jobMsg      = document.getElementById("job-msg");
-const jobsGrid    = document.getElementById("jobs-grid");
+// Crime Alerts
+const alertType = $("alert-type");
+const alertSeverity = $("alert-severity");
+const alertLocation = $("alert-location");
+const alertDesc = $("alert-desc");
+const alertAnonymous = $("alert-anonymous");
+const postAlertBtn = $("post-alert-btn");
+const alertMsg = $("alert-msg");
+const alertsGrid = $("alerts-grid");
 
-const searchInput = document.getElementById("search-input");
+// Moderation
+const modNavLink = $("mod-nav-link");
+const reportsList = $("reports-list");
+const modMsg = $("mod-msg");
 
-const verifiedBadge   = document.getElementById("verified-badge");
-const verifyBanner    = document.getElementById("verify-banner");
-const resendVerifyBtn = document.getElementById("resend-verify-btn");
-const verifyMsg       = document.getElementById("verify-msg");
-
-const anonymousCheckbox = document.getElementById("anonymous-checkbox");
-const hearDesc          = document.getElementById("hear-desc");
-const hearPostBtn       = document.getElementById("hear-post-btn");
-const hearMsg           = document.getElementById("hear-msg");
-const hearPostsGrid     = document.getElementById("hear-posts-grid");
 // ===============================================
-// 4b. TOGGLE LOGIN / REGISTER
+// 3. UTILITIES
 // ===============================================
-showRegisterLink.addEventListener("click", (e) => {
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+
+function setMsg(el, text, type = "error") {
+  if (!el) return;
+  el.textContent = text;
+  el.style.color = type === "success" ? "var(--success)" : "var(--error)";
+}
+
+function formatTimeAgo(timestamp) {
+  const now = Date.now();
+  const diff = Math.floor((now - timestamp) / 1000);
+  if (diff < 60) return "just now";
+  if (diff < 3600) return Math.floor(diff / 60) + "m ago";
+  if (diff < 86400) return Math.floor(diff / 3600) + "h ago";
+  if (diff < 604800) return Math.floor(diff / 86400) + "d ago";
+  return new Date(timestamp).toLocaleDateString();
+}
+
+// ===============================================
+// 4. VIEW CONTROLLER
+// ===============================================
+function hideAll() {
+  [landingView, loginView, registerView, dashboardView].forEach(
+    (v) => v && v.classList.add("hidden")
+  );
+}
+
+function showLanding() {
+  hideAll();
+  landingView?.classList.remove("hidden");
+}
+
+function showLogin() {
+  hideAll();
+  loginView?.classList.remove("hidden");
+  if (loginMsg) loginMsg.textContent = "";
+}
+
+function showRegister() {
+  hideAll();
+  registerView?.classList.remove("hidden");
+  if (registerMsg) registerMsg.textContent = "";
+}
+
+function showDashboard() {
+  hideAll();
+  dashboardView?.classList.remove("hidden");
+}
+
+brandHomeLink?.addEventListener("click", (e) => {
   e.preventDefault();
-  loginView.classList.add("hidden");
-  registerView.classList.remove("hidden");
-  loginMsg.textContent = "";
+  auth.currentUser ? showDashboard() : showLanding();
+});
+heroSignupBtn?.addEventListener("click", showRegister);
+heroLoginBtn?.addEventListener("click", showLogin);
+ctaSignupBtn?.addEventListener("click", showRegister);
+showRegisterLink?.addEventListener("click", (e) => { e.preventDefault(); showRegister(); });
+showLoginLink?.addEventListener("click", (e) => { e.preventDefault(); showLogin(); });
+backFromLogin?.addEventListener("click", (e) => { e.preventDefault(); showLanding(); });
+backFromRegister?.addEventListener("click", (e) => { e.preventDefault(); showLanding(); });
+
+document.querySelectorAll('[data-show="login"]').forEach((el) =>
+  el.addEventListener("click", (e) => { e.preventDefault(); showLogin(); })
+);
+document.querySelectorAll('[data-show="register"]').forEach((el) =>
+  el.addEventListener("click", (e) => { e.preventDefault(); showRegister(); })
+);
+
+// ===============================================
+// 5. HEADER
+// ===============================================
+searchToggleBtn?.addEventListener("click", () => {
+  searchWrap?.classList.remove("hidden");
+  searchToggleBtn.classList.add("hidden");
+  headerSearch?.focus();
 });
 
-showLoginLink.addEventListener("click", (e) => {
+searchCloseBtn?.addEventListener("click", () => {
+  searchWrap?.classList.add("hidden");
+  searchToggleBtn?.classList.remove("hidden");
+  if (headerSearch) headerSearch.value = "";
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && searchWrap && !searchWrap.classList.contains("hidden")) {
+    searchWrap.classList.add("hidden");
+    searchToggleBtn?.classList.remove("hidden");
+    if (headerSearch) headerSearch.value = "";
+  }
+});
+
+profileMenuBtn?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  profileDropdown?.classList.toggle("hidden");
+});
+document.addEventListener("click", () => profileDropdown?.classList.add("hidden"));
+profileDropdown?.addEventListener("click", (e) => e.stopPropagation());
+
+$("menu-logout")?.addEventListener("click", async (e) => {
   e.preventDefault();
-  registerView.classList.add("hidden");
-  loginView.classList.remove("hidden");
-  registerMsg.textContent = "";
+  profileDropdown?.classList.add("hidden");
+  await signOut(auth);
+});
+
+$("menu-view-profile")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  profileDropdown?.classList.add("hidden");
+  showPage("home");
+});
+
+$("menu-edit-profile")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  profileDropdown?.classList.add("hidden");
+  showPage("home");
+  document.getElementById("profile-view-mode")?.classList.add("hidden");
+  document.getElementById("profile-edit-mode")?.classList.remove("hidden");
 });
 
 // ===============================================
-// 4c. POST CATEGORY: SHOW/HIDE DATETIME
+// 6. AUTH
 // ===============================================
-postCategory.addEventListener("change", () => {
-  postDatetime.classList.toggle("hidden", postCategory.value !== "events");
-});
+registerBtn?.addEventListener("click", async () => {
+  const name = registerName?.value.trim();
+  const email = registerEmail?.value.trim();
+  const pass = registerPass?.value;
 
-// ===============================================
-// 5a. REGISTER
-// ===============================================
-registerBtn.addEventListener("click", async () => {
-  const name  = registerName.value.trim();
-  const email = registerEmail.value.trim();
-  const pass  = registerPass.value;
-
-  registerMsg.textContent = "";
-
-  if (!name || !email || !pass) {
-    registerMsg.textContent = "Please fill in all fields.";
-    return;
-  }
-  if (pass.length < 6) {
-    registerMsg.textContent = "Password must be at least 6 characters.";
-    return;
-  }
+  if (!name || !email || !pass) return setMsg(registerMsg, "Fill in all fields.");
+  if (pass.length < 6) return setMsg(registerMsg, "Password must be 6+ characters.");
+  if (!email.includes("@")) return setMsg(registerMsg, "Enter a valid email.");
 
   registerBtn.disabled = true;
   registerBtn.textContent = "Creating...";
@@ -182,69 +331,110 @@ registerBtn.addEventListener("click", async () => {
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
     const user = cred.user;
-
     await updateProfile(user, { displayName: name });
 
-    // Send verification email (non-blocking — don't fail registration if this fails)
-    try {
-      await sendEmailVerification(user);
-    } catch (e) {
-      console.warn("Verification email not sent:", e.message);
-    }
+    try { await sendEmailVerification(user); } catch (e) { console.warn(e.message); }
+    console.log("Saving to Firestore:", { name, email });
 
-    await setDoc(
-      doc(db, "users", user.uid),
-      { name, email, createdAt: new Date().toISOString() },
-      { merge: true }
-    );
+    await setDoc(doc(db, "users", user.uid), {
+      name, email, createdAt: new Date().toISOString()
+    }, { merge: true });
 
-    registerMsg.textContent = "Account created! You are now logged in.";
-  } catch (error) {
-    registerMsg.textContent = "Error: " + error.message;
+    setMsg(registerMsg, "Account created! You are now logged in.", "success");
+  } catch (e) {
+    setMsg(registerMsg, "Error: " + e.message);
   } finally {
     registerBtn.disabled = false;
     registerBtn.textContent = "Create Account";
   }
 });
 
+// Grab the link
+const forgotPasswordLink = $("forgot-password-link");
+
+// Add the listener
+forgotPasswordLink?.addEventListener("click", async (e) => {
+  e.preventDefault();
+
+  // Get the email the user has already typed in the login form
+  const email = loginEmail?.value.trim();
+
+  if (!email) {
+    setMsg(loginMsg, "Please enter your email address first, then click 'Forgot password'.");
+    return;
+  }
+
+  try {
+    // Firebase function to send the reset email
+    await sendPasswordResetEmail(auth, email);
+    setMsg(loginMsg, "Password reset email sent! Check your inbox.", "success");
+  } catch (error) {
+    setMsg(loginMsg, "Error: " + error.message);
+  }
+});
+
+loginBtn?.addEventListener("click", async () => {
+  const email = loginEmail?.value.trim();
+  const pass = loginPass?.value;
+  if (!email || !pass) return setMsg(loginMsg, "Enter email and password.");
+
+  loginBtn.disabled = true;
+  loginBtn.textContent = "Logging in...";
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch (e) {
+    setMsg(loginMsg, "Error: " + e.message);
+  } finally {
+    loginBtn.disabled = false;
+    loginBtn.textContent = "Log In";
+  }
+});
+
+resendVerifyBtn?.addEventListener("click", async () => {
+  const user = auth.currentUser;
+  if (!user) return;
+  try {
+    await sendEmailVerification(user);
+    setMsg(verifyMsg, "Verification email sent!", "success");
+  } catch (e) {
+    setMsg(verifyMsg, "Error: " + e.message);
+  }
+});
+
 // ===============================================
-// 5b. SAVE PROFILE
+// 7. PROFILE
 // ===============================================
-saveProfileBtn.addEventListener("click", async () => {
+
+cancelProfileBtn?.addEventListener("click", () => {
+  if (auth.currentUser) loadProfile(auth.currentUser);
+  profileEditMode?.classList.add("hidden");
+  profileViewMode?.classList.remove("hidden");
+});
+
+saveProfileBtn?.addEventListener("click", async () => {
   const user = auth.currentUser;
   if (!user) return;
 
   const interests = [];
-  document.querySelectorAll(".interests-grid input:checked").forEach((cb) => {
-    interests.push(cb.value);
-  });
+  document.querySelectorAll(".interests-grid input:checked").forEach((cb) => interests.push(cb.value));
 
   saveProfileBtn.disabled = true;
   saveProfileBtn.textContent = "Saving...";
-  profileMsg.textContent = "";
 
   try {
-    await setDoc(
-      doc(db, "users", user.uid),
-      {
-        school: profileSchool.value.trim(),
-        city: profileCity.value.trim(),
-        bio: profileBio.value.trim(),
-        interests
-      },
-      { merge: true }
-    );
+    await setDoc(doc(db, "users", user.uid), {
+      school: profileSchool?.value.trim(),
+      city: profileCity?.value.trim(),
+      bio: profileBio?.value.trim(),
+      interests
+    }, { merge: true });
 
-    profileMsg.textContent = "Profile saved successfully! ✅";
-    profileMsg.style.color = "#27ae60";
-
-        renderProfileView();
-    profileViewMode.classList.remove("hidden");
-    profileEditMode.classList.add("hidden");
-
-  } catch (error) {
-    profileMsg.textContent = "Error: " + error.message;
-    profileMsg.style.color = "#e74c3c";
+    renderProfileView();
+    profileEditMode?.classList.add("hidden");
+    profileViewMode?.classList.remove("hidden");
+    setMsg(profileMsg, "Profile saved ✅", "success");
+  } catch (e) {
+    setMsg(profileMsg, "Error: " + e.message);
   } finally {
     saveProfileBtn.disabled = false;
     saveProfileBtn.textContent = "Save Profile";
@@ -252,346 +442,1295 @@ saveProfileBtn.addEventListener("click", async () => {
 });
 
 // ===============================================
-// 5c. LOAD PROFILE ON LOGIN
+// DELETE ACCOUNT
 // ===============================================
-async function loadProfile(user) {
-  try {
-    const profileRef  = doc(db, "users", user.uid);
-    const profileSnap = await getDoc(profileRef, { source: "server" });
-
-    if (profileSnap.exists()) {
-      const data = profileSnap.data();
-
-      profileSchool.value = data.school || "";
-      profileCity.value   = data.city   || "";
-      profileBio.value    = data.bio    || "";
-
-      const interests = data.interests || [];
-      document.querySelectorAll(".interests-grid input").forEach((cb) => {
-        cb.checked = interests.includes(cb.value);
-        renderProfileView();
-      });
-    } else {
-    // No profile yet — switch to edit mode so user can fill it in
-    renderProfileView();
-    profileViewMode.classList.add("hidden");
-    profileEditMode.classList.remove("hidden");
-    profileMsg.textContent = "Welcome! Complete your profile to build trust.";
-    profileMsg.style.color = "#888";
-  }
-  } catch (error) {
-    console.error("Could not load profile:", error);
-    profileMsg.textContent = "Could not load profile: " + error.message;
-    profileMsg.style.color = "#e74c3c";
-  }
-}
-// ===============================================
-// 5d. POST LISTING
-// ===============================================
-postListingBtn.addEventListener("click", async () => {
+document.getElementById("delete-account-btn")?.addEventListener("click", async () => {
   const user = auth.currentUser;
   if (!user) return;
 
-  const title    = listingTitle.value.trim();
-  const rent     = Number(listingRent.value);
-  const location = listingLocation.value.trim();
-  const desc     = listingDesc.value.trim();
+  // Two-step confirmation
+  const step1 = confirm(
+    "Delete your OneRoof account?\n\n" +
+    "This will permanently delete:\n" +
+    "• Your profile\n" +
+    "• All your listings, posts, jobs, and alerts\n" +
+    "• Your messages\n" +
+    "• Your vouches\n\n" +
+    "This cannot be undone."
+  );
+  if (!step1) return;
 
-  listingMsg.textContent = "";
-
-  if (!title || !rent || !location) {
-    listingMsg.textContent = "Title, rent, and location required.";
-    listingMsg.style.color = "#e74c3c";
+  const step2 = prompt("Type DELETE (all caps) to confirm:");
+  if (step2 !== "DELETE") {
+    alert("Cancelled. Your account was not deleted.");
     return;
   }
+
+  const btn = document.getElementById("delete-account-btn");
+  if (btn) { btn.disabled = true; btn.textContent = "Deleting..."; }
+
+  try {
+    // 1. Delete user data from Firestore first
+    await deleteUserData(user.uid);
+
+    // 2. Then delete the Auth account
+    await deleteUser(user);
+
+    alert("Your account has been deleted. Goodbye!");
+    // Firebase auto-signs out after deleteUser — landing page will show
+  } catch (e) {
+    if (e.code === "auth/requires-recent-login") {
+      alert("For security, please log out and log back in, then try deleting your account again.");
+    } else {
+      alert("Error deleting account: " + e.message);
+    }
+    if (btn) { btn.disabled = false; btn.textContent = "Delete Account"; }
+  }
+});
+
+// ===============================================
+// DELETE USER DATA FROM FIRESTORE
+// ===============================================
+async function deleteUserData(uid) {
+  try {
+    // Delete user profile document
+    await deleteDoc(doc(db, "users", uid));
+
+    // Delete all listings by this user
+    const listings = await getDocs(query(collection(db, "listings"), where("user_id", "==", uid)));
+    for (const d of listings.docs) {
+      await deleteDoc(doc(db, "listings", d.id));
+    }
+
+    // Delete all posts by this user
+    const posts = await getDocs(query(collection(db, "posts"), where("host_id", "==", uid)));
+    for (const d of posts.docs) {
+      await deleteDoc(doc(db, "posts", d.id));
+    }
+
+    // Delete all jobs by this user
+    const jobs = await getDocs(query(collection(db, "jobs"), where("poster_id", "==", uid)));
+    for (const d of jobs.docs) {
+      await deleteDoc(doc(db, "jobs", d.id));
+    }
+
+    // Delete all hear_me_out posts by this user
+    const hear = await getDocs(query(collection(db, "hear_me_out"), where("author_id", "==", uid)));
+    for (const d of hear.docs) {
+      await deleteDoc(doc(db, "hear_me_out", d.id));
+    }
+
+    // Delete all crime alerts by this user
+    const alerts = await getDocs(query(collection(db, "crime_alerts"), where("reporter_id", "==", uid)));
+    for (const d of alerts.docs) {
+      await deleteDoc(doc(db, "crime_alerts", d.id));
+    }
+
+    // Delete all messages sent/received
+    const sentMsgs = await getDocs(query(collection(db, "messages"), where("from_user", "==", uid)));
+    for (const d of sentMsgs.docs) {
+      await deleteDoc(doc(db, "messages", d.id));
+    }
+    const receivedMsgs = await getDocs(query(collection(db, "messages"), where("to_user", "==", uid)));
+    for (const d of receivedMsgs.docs) {
+      await deleteDoc(doc(db, "messages", d.id));
+    }
+
+    // Delete vouches received and given
+    const receivedVouches = await getDocs(query(collection(db, "vouches"), where("to_user", "==", uid)));
+    for (const d of receivedVouches.docs) {
+      await deleteDoc(doc(db, "vouches", d.id));
+    }
+    const givenVouches = await getDocs(query(collection(db, "vouches"), where("from_user", "==", uid)));
+    for (const d of givenVouches.docs) {
+      await deleteDoc(doc(db, "vouches", d.id));
+    }
+  } catch (e) {
+    console.warn("Data deletion error:", e.message);
+    // Don't block account deletion if some data fails — proceed anyway
+  }
+}
+
+function renderProfileView() {
+  // School and city
+  if (viewSchool) viewSchool.textContent = profileSchool?.value.trim() || "School not set";
+  if (viewCity) viewCity.textContent = profileCity?.value.trim() || "City not set";
+
+  // Bio / intro
+  if (viewBio) viewBio.textContent = profileBio?.value.trim() || "No intro yet.";
+
+  // Interests as pills
+  const interests = [];
+  document.querySelectorAll(".interests-grid input:checked").forEach((cb) => interests.push(cb.value));
+  const interestsEl = document.getElementById("view-interests");
+  if (interestsEl) {
+    if (interests.length) {
+      const icons = { "Housing": "🏠", "Food": "🍽️", "Events": "🎉", "Jobs": "💼", "Free Items": "🎁", "Support": "💬" };
+      interestsEl.innerHTML = interests.map((i) =>
+        `<span class="interest-pill">${icons[i] || "•"} ${escapeHtml(i)}</span>`
+      ).join("");
+    } else {
+      interestsEl.textContent = '<span style="color:var(--text-muted);font-size:13px;">Add interests to connect with people who share them</span>';
+    }
+  }
+}
+
+async function loadProfile(user) {
+  try {
+    const snap = await getDoc(doc(db, "users", user.uid));
+    if (snap.exists()) {
+      const d = snap.data();
+
+      if (userName) userName.textContent = d.name || user.displayName || "friend";
+
+      if (profileSchool) profileSchool.value = d.school || "";
+      if (profileCity) profileCity.value = d.city || "";
+      if (profileBio) profileBio.value = d.bio || "";
+      if (profileName) profileName.value = d.name || "";
+
+      const interests = d.interests || [];
+      document.querySelectorAll(".interests-grid input").forEach((cb) => {
+        cb.checked = interests.includes(cb.value);
+      });
+
+      renderProfileView();
+      profileEditMode?.classList.add("hidden");
+      profileViewMode?.classList.remove("hidden");
+
+      // Load counts
+      try {
+        const [followerSnap, followingSnap, vouchSnap, listingsSnap, postsSnap, jobsSnap] = await Promise.all([
+          getDocs(query(collection(db, "follows"), where("following_id", "==", user.uid))),
+          getDocs(query(collection(db, "follows"), where("follower_id", "==", user.uid))),
+          getDocs(query(collection(db, "vouches"), where("to_user", "==", user.uid))),
+          getDocs(query(collection(db, "listings"), where("user_id", "==", user.uid))),
+          getDocs(query(collection(db, "posts"), where("host_id", "==", user.uid))),
+          getDocs(query(collection(db, "jobs"), where("poster_id", "==", user.uid)))
+        ]);
+
+        document.getElementById("own-follower-count").textContent = followerSnap.size;
+        document.getElementById("own-following-count").textContent = followingSnap.size;
+        document.getElementById("own-vouch-count").textContent = vouchSnap.size;
+        document.getElementById("count-listings").textContent = listingsSnap.size;
+        document.getElementById("count-posts").textContent = postsSnap.size;
+        document.getElementById("count-jobs").textContent = jobsSnap.size;
+
+        const { avg, count } = await loadVouchesFor(user.uid);
+        const ratingEl = document.getElementById("own-rating-display");
+        if (ratingEl && count > 0) {
+          ratingEl.innerHTML = `${renderDiamondRating(avg)} ${avg} · `;
+        }
+
+        if (count > 0) {
+          const vouchList = document.getElementById("own-vouch-list");
+          if (vouchList) renderVouchList(vouchList, (await loadVouchesFor(user.uid)).vouches.slice(0, 3));
+        }
+      } catch (e) {
+        console.warn("Profile counts error:", e.message);
+      }
+    }
+  } catch (e) {
+    console.error("Profile load error:", e);
+  }
+}
+
+function updateVerificationUI(user) {
+  const verifyInline = document.getElementById("verify-inline");
+  const verifiedBadge = document.getElementById("verified-badge");
+  const unverifiedBadge = document.getElementById("unverified-badge");
+
+  if (user.emailVerified) {
+    verifiedBadge?.classList.remove("hidden");
+    unverifiedBadge?.classList.add("hidden");
+    verifyInline?.classList.add("hidden");
+  } else {
+    verifiedBadge?.classList.add("hidden");
+    unverifiedBadge?.classList.remove("hidden");
+    verifyInline?.classList.remove("hidden");
+  }
+}
+
+const deleteAccountBtn = $("delete-account-btn");
+
+deleteAccountBtn?.addEventListener("click", async () => {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  // 1. Simple confirmation
+  const confirmed = confirm(
+    "Delete your OneRoof account?\n\n" +
+    "This will permanently delete your profile, posts, messages, and vouches.\n\n" +
+    "This cannot be undone. Are you sure?"
+  );
+  if (!confirmed) return;
+
+  try {
+    // 2. The actual deletion
+    await deleteUser(user);
+    alert("Your account has been deleted.");
+    // Firebase will automatically sign the user out
+  } catch (error) {
+    // 3. Handle the "requires-recent-login" error
+    if (error.code === "auth/requires-recent-login") {
+      alert("For security, please log out and log back in, then try deleting your account again.");
+    } else {
+      alert("Error deleting account: " + error.message);
+    }
+  }
+});
+
+// ===============================================
+// 8. DASHBOARD PAGE NAVIGATION
+// ===============================================
+function showPage(pageName) {
+  document.querySelectorAll(".dash-page").forEach((p) => p.classList.add("hidden"));
+  document.getElementById("page-" + pageName)?.classList.remove("hidden");
+  document.querySelectorAll(".dash-nav-link").forEach((link) => {
+    link.classList.toggle("active", link.dataset.page === pageName);
+  });
+
+  if (pageName === "housing") loadListings();
+  if (pageName === "food") loadFood();
+  if (pageName === "events") loadEvents();
+  if (pageName === "free") loadFree();
+  if (pageName === "jobs") loadJobs();
+  if (pageName === "hear") loadHear();
+  if (pageName === "alerts") loadAlerts();
+  if (pageName === "mod") loadReports();
+  if (pageName === "messages") loadMessages();
+  if (pageName === "home") updateHubCounts();
+}
+
+document.querySelectorAll(".dash-nav-link").forEach((link) => {
+  link.addEventListener("click", () => showPage(link.dataset.page));
+});
+
+document.querySelectorAll('[data-goto]').forEach((el) => {
+  el.addEventListener("click", (e) => {
+    e.preventDefault();
+    showPage(el.dataset.goto);
+  });
+});
+
+// ===============================================
+// 9. POSTER LINK + USER PROFILE MODAL
+// ===============================================
+let currentProfileUid = null;
+let currentProfileName = "";
+
+function addPosterLine(card, uid, name) {
+  const user = auth.currentUser;
+  if (!user || user.uid === uid) return;
+
+  const line = document.createElement("div");
+  line.className = "item-meta";
+  line.style.marginBottom = "8px";
+  line.innerHTML = `Posted by <a href="#" class="poster-link">${escapeHtml(name || "member")}</a>`;
+
+  line.querySelector(".poster-link").addEventListener("click", (e) => {
+    e.preventDefault();
+    openUserProfile(uid, name);
+  });
+
+  card.insertBefore(line, card.firstChild);
+}
+
+async function openUserProfile(uid, name) {
+  if (!uid) return;
+
+  const modal = document.getElementById("user-profile-modal");
+  if (!modal) return;
+
+  currentProfileUid = uid;
+  currentProfileName = name || "user";
+
+  document.getElementById("modal-user-name").textContent = name || "User";
+  document.getElementById("modal-user-subtitle").textContent = "Loading...";
+  document.getElementById("modal-user-bio").textContent = "—";
+  document.getElementById("modal-user-interests").textContent = "—";
+  document.getElementById("modal-count-listings").textContent = "0";
+  document.getElementById("modal-count-posts").textContent = "0";
+  document.getElementById("modal-count-jobs").textContent = "0";
+
+  modal.classList.remove("hidden");
+
+  try {
+    const userSnap = await getDoc(doc(db, "users", uid));
+    if (userSnap.exists()) {
+      const d = userSnap.data();
+      const subtitle = [d.school, d.city].filter(Boolean).join(" · ") || "OneRoof member";
+      document.getElementById("modal-user-subtitle").textContent = subtitle;
+      document.getElementById("modal-user-bio").textContent = d.bio || "—";
+      document.getElementById("modal-user-interests").textContent =
+        (d.interests && d.interests.length) ? d.interests.join(", ") : "—";
+    }
+
+    const [listings, posts, jobs] = await Promise.all([
+      getDocs(query(collection(db, "listings"), where("user_id", "==", uid))),
+      getDocs(query(collection(db, "posts"), where("host_id", "==", uid))),
+      getDocs(query(collection(db, "jobs"), where("poster_id", "==", uid)))
+    ]);
+
+    document.getElementById("modal-count-listings").textContent = listings.size;
+    document.getElementById("modal-count-posts").textContent = posts.size;
+    document.getElementById("modal-count-jobs").textContent = jobs.size;
+
+    const { count, vouches } = await loadVouchesFor(uid);
+    const vouchSection = document.getElementById("modal-vouch-section");
+    const vouchList = document.getElementById("modal-vouch-list");
+    const vouchBtn = document.getElementById("modal-vouch-btn");
+
+    if (count > 0) {
+      vouchSection?.classList.remove("hidden");
+      renderVouchList(vouchList, vouches);
+    } else {
+      vouchSection?.classList.add("hidden");
+    }
+
+    if (auth.currentUser && auth.currentUser.uid !== uid) {
+      vouchBtn?.classList.remove("hidden");
+    } else {
+      vouchBtn?.classList.add("hidden");
+    }
+  } catch (e) {
+    console.error("Profile load error:", e);
+  }
+
+  // ===============================================
+  // FOLLOW BUTTON
+  // ===============================================
+  const followBtn = document.getElementById("modal-follow-btn");
+
+  if (followBtn && auth.currentUser && auth.currentUser.uid !== uid) {
+    followBtn.classList.remove("hidden");
+
+    // Check if already following
+    const followQuery = query(
+      collection(db, "follows"),
+      where("follower_id", "==", auth.currentUser.uid),
+      where("following_id", "==", uid)
+    );
+    const followSnap = await getDocs(followQuery);
+    const isFollowing = !followSnap.empty;
+
+    // Update button state
+    followBtn.textContent = isFollowing ? "✓ Following" : "+ Follow";
+    followBtn.className = isFollowing ? "btn-muted" : "";
+
+    // Remove old listeners (clone/replace to avoid duplicates)
+    const newFollowBtn = followBtn.cloneNode(true);
+    followBtn.parentNode.replaceChild(newFollowBtn, followBtn);
+
+    newFollowBtn.addEventListener("click", async () => {
+      newFollowBtn.disabled = true;
+      try {
+        if (isFollowing) {
+          // Unfollow
+          for (const doc of followSnap.docs) {
+            await deleteDoc(doc(db, "follows", doc.id));
+          }
+          newFollowBtn.textContent = "+ Follow";
+          newFollowBtn.className = "";
+        } else {
+          // Follow
+          await addDoc(collection(db, "follows"), {
+            follower_id: auth.currentUser.uid,
+            following_id: uid,
+            createdAt: Date.now()
+          });
+          newFollowBtn.textContent = "✓ Following";
+          newFollowBtn.className = "btn-muted";
+        }
+      } catch (e) {
+        alert("Error: " + e.message);
+      } finally {
+        newFollowBtn.disabled = false;
+      }
+    });
+  } else if (followBtn) {
+    followBtn.classList.add("hidden");
+  }
+
+  // Follower/following counts
+  try {
+    const followerSnap = await getDocs(
+      query(collection(db, "follows"), where("following_id", "==", uid))
+    );
+    const followingSnap = await getDocs(
+      query(collection(db, "follows"), where("follower_id", "==", uid))
+    );
+    const followerEl = document.getElementById("modal-follower-count");
+    const followingEl = document.getElementById("modal-following-count");
+    if (followerEl) followerEl.textContent = followerSnap.size;
+    if (followingEl) followingEl.textContent = followingSnap.size;
+  } catch (e) {
+    console.warn("Follow counts error:", e.message);
+  }
+}
+
+function closeUserProfile() {
+  document.getElementById("user-profile-modal")?.classList.add("hidden");
+  currentProfileUid = null;
+  currentProfileName = "";
+}
+
+document.getElementById("modal-close-btn")?.addEventListener("click", closeUserProfile);
+document.getElementById("user-profile-modal")?.addEventListener("click", (e) => {
+  if (e.target.id === "user-profile-modal") closeUserProfile();
+});
+
+document.getElementById("modal-message-btn")?.addEventListener("click", () => {
+  if (!currentProfileUid) return;
+  closeUserProfile();
+  openMessageDialog({
+    to_user: currentProfileUid,
+    to_name: currentProfileName,
+    post_id: "",
+    post_title: ""
+  });
+});
+
+// ===============================================
+// 10. VOUCH SYSTEM — diamonds + vouches
+// ===============================================
+const VOUCH_CONTEXTS = {
+  "sublease": "🏡 Sublease",
+  "roommate": "🏠 Roommate",
+  "cooking-group": "🍽️ Cooking group",
+  "event": "🎉 Event",
+  "study": "📚 Study",
+  "job-referral": "💼 Job referral",
+  "ride": "🚗 Ride",
+  "help": "🆘 Help"
+};
+
+function renderDiamondRating(avg) {
+  const filled = Math.round(avg || 0);
+  let html = "";
+  for (let i = 0; i < 5; i++) {
+    html += i < filled ? '<span class="filled">💎</span>' : '<span class="empty">🤍</span>';
+  }
+  return `<span class="diamond-rating">${html}</span>`;
+}
+
+async function loadVouchesFor(uid) {
+  try {
+    const q = query(collection(db, "vouches"), where("to_user", "==", uid));
+    const snap = await getDocs(q);
+    const vouches = [];
+    let total = 0;
+    snap.forEach((d) => {
+      const v = d.data();
+      vouches.push({ id: d.id, ...v });
+      if (v.rating) total += v.rating;
+    });
+    vouches.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    const avg = vouches.length ? (total / vouches.length).toFixed(1) : "0.0";
+    return { avg, count: vouches.length, vouches };
+  } catch (e) {
+    console.warn("Load vouches error:", e.message);
+    return { avg: "0.0", count: 0, vouches: [] };
+  }
+}
+
+function renderVouchList(container, vouches) {
+  if (!container) return;
+  if (!vouches.length) {
+    container.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">No vouches yet.</p>';
+    return;
+  }
+  container.innerHTML = "";
+  vouches.forEach((v) => {
+    const card = document.createElement("div");
+    card.className = "vouch-card";
+    const contextLabel = VOUCH_CONTEXTS[v.context] || "🤝 Vouch";
+    card.innerHTML = `
+      <div class="vouch-card-message">"${escapeHtml(v.message)}"</div>
+      <div class="vouch-card-meta">
+        ${renderDiamondRating(v.rating)}
+        <span>— ${escapeHtml(v.from_name || "someone")}</span>
+        <span>· ${escapeHtml(contextLabel)}</span>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+async function updateOwnVouches(uid) {
+  const { avg, count, vouches } = await loadVouchesFor(uid);
+  const trustLine = document.getElementById("own-trust-line");
+  const section = document.getElementById("own-vouch-section");
+  const list = document.getElementById("own-vouch-list");
+
+  if (count > 0) {
+    if (trustLine) {
+      trustLine.classList.remove("hidden");
+      trustLine.innerHTML = `${renderDiamondRating(avg)} ${avg} · Trusted by ${count} community member${count === 1 ? "" : "s"}`;
+    }
+    if (section) section.classList.remove("hidden");
+    renderVouchList(list, vouches.slice(0, 3));
+  } else {
+    if (trustLine) trustLine.classList.add("hidden");
+    if (section) section.classList.add("hidden");
+  }
+}
+
+// ===============================================
+// 11. SIMPLE INBOX — MESSAGING
+// ===============================================
+let currentMessageContext = null;
+
+function openMessageDialog(ctx) {
+  const dialog = document.getElementById("message-dialog");
+  if (!dialog) return;
+
+  currentMessageContext = ctx;
+
+  const title = document.getElementById("message-dialog-title");
+  const context = document.getElementById("message-dialog-context");
+  const input = document.getElementById("message-input");
+  const msg = document.getElementById("message-msg");
+
+  if (title) title.textContent = `Send a message to ${ctx.to_name || "this person"}`;
+  if (context) context.textContent = ctx.post_title ? `Re: ${ctx.post_title}` : "";
+  if (input) input.value = "";
+  if (msg) msg.textContent = "";
+
+  dialog.classList.remove("hidden");
+  input?.focus();
+}
+
+function closeMessageDialog() {
+  document.getElementById("message-dialog")?.classList.add("hidden");
+  currentMessageContext = null;
+}
+
+async function sendMessage() {
+  if (!currentMessageContext) return;
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const input = document.getElementById("message-input");
+  const msgEl = document.getElementById("message-msg");
+  const sendBtn = document.getElementById("message-send-btn");
+
+  const text = input?.value.trim();
+  if (!text) {
+    if (msgEl) { msgEl.textContent = "Write a message first."; msgEl.style.color = "var(--error)"; }
+    return;
+  }
+
+  if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = "Sending..."; }
+
+  try {
+    await addDoc(collection(db, "messages"), {
+      from_user: user.uid,
+      from_name: user.displayName || "user",
+      from_email: user.email || "",
+      to_user: currentMessageContext.to_user,
+      to_name: currentMessageContext.to_name || "",
+      post_id: currentMessageContext.post_id || "",
+      post_title: currentMessageContext.post_title || "",
+      message: text,
+      read: false,
+      createdAt: Date.now()
+    });
+
+    if (msgEl) { msgEl.textContent = "Message sent! ✅"; msgEl.style.color = "var(--success)"; }
+    setTimeout(closeMessageDialog, 800);
+  } catch (e) {
+    if (msgEl) { msgEl.textContent = "Error: " + e.message; msgEl.style.color = "var(--error)"; }
+  } finally {
+    if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = "Send"; }
+  }
+}
+
+document.getElementById("message-cancel-btn")?.addEventListener("click", closeMessageDialog);
+document.getElementById("message-send-btn")?.addEventListener("click", sendMessage);
+document.getElementById("message-dialog")?.addEventListener("click", (e) => {
+  if (e.target.id === "message-dialog") closeMessageDialog();
+});
+
+function addMessageButton(card, ctx) {
+  const user = auth.currentUser;
+  if (!user || user.uid === ctx.to_user) return;
+
+  const btn = document.createElement("button");
+  btn.textContent = "💬 Message";
+  btn.className = "message-btn";
+  btn.addEventListener("click", () => openMessageDialog(ctx));
+  card.appendChild(btn);
+}
+
+async function loadMessages() {
+  const grid = document.getElementById("messages-grid");
+  if (!grid) return;
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  try {
+    const q = query(
+      collection(db, "messages"),
+      where("to_user", "==", user.uid),
+      orderBy("createdAt", "desc"),
+      limit(50)
+    );
+    const snap = await getDocs(q);
+
+    grid.innerHTML = "";
+    if (snap.empty) {
+      grid.innerHTML = '<p style="color:var(--text-muted);">No messages yet. When someone contacts you, it will show up here.</p>';
+      return;
+    }
+
+    snap.forEach((d) => {
+      const m = d.data();
+      const card = document.createElement("div");
+      card.className = "msg-card" + (m.read ? "" : " unread");
+      const timeAgo = formatTimeAgo(m.createdAt);
+
+      card.innerHTML = `
+        <div class="msg-header">
+          <div class="msg-from">${escapeHtml(m.from_name || "Someone")} ${m.read ? "" : "🔵"}</div>
+          <div class="msg-time">${timeAgo}</div>
+        </div>
+        ${m.post_title ? `<div class="msg-post">Re: ${escapeHtml(m.post_title)}</div>` : ""}
+        <div class="msg-body">${escapeHtml(m.message)}</div>
+      `;
+
+      // Reply button — no count, just "Reply"
+      const replyBtn = document.createElement("button");
+      replyBtn.textContent = "💬 Reply";
+      replyBtn.className = "message-btn";
+      replyBtn.addEventListener("click", () => {
+        openMessageDialog({
+          to_user: m.from_user,
+          to_name: m.from_name,
+          post_id: m.post_id,
+          post_title: m.post_title
+        });
+      });
+
+      if (!m.read) {
+        const readBtn = document.createElement("button");
+        readBtn.textContent = "Mark as read";
+        readBtn.className = "btn-small btn-muted";
+        readBtn.style.marginLeft = "8px";
+        readBtn.addEventListener("click", async () => {
+          await updateDoc(doc(db, "messages", d.id), { read: true });
+          loadMessages();
+        });
+        card.appendChild(replyBtn);
+        card.appendChild(readBtn);
+      } else {
+        card.appendChild(replyBtn);
+      }
+
+      grid.appendChild(card);
+    });
+  } catch (e) {
+    grid.innerHTML = `<p style="color:var(--error);">Error: ${escapeHtml(e.message)}</p>`;
+  }
+}
+
+// ===============================================
+// 12. HOUSING
+// ===============================================
+postListingBtn?.addEventListener("click", async () => {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const title = listingTitle?.value.trim();
+  const rent = Number(listingRent?.value);
+  const location = listingLocation?.value.trim();
+  const desc = listingDesc?.value.trim();
+  const type = housingType?.value || "rent-room";
+
+  if (!title || !rent || !location) return setMsg(listingMsg, "Title, rent, location required.");
 
   postListingBtn.disabled = true;
   postListingBtn.textContent = "Posting...";
 
   try {
-    await setDoc(doc(collection(db, "listings")), {
+    await addDoc(collection(db, "listings"), {
       user_id: user.uid,
-      title, rent, location,
-      description: desc,
-      createdAt: Date.now()
+      owner_name: user.displayName || "user",
+      owner_email: user.email || "",
+      housing_type: type,
+      title, rent, location, description: desc,
+      attendees: [],
+      createdAt: Date.now(),
+      comment_count: 0
     });
 
-    listingTitle.value = "";
-    listingRent.value = "";
-    listingLocation.value = "";
-    listingDesc.value = "";
+    if (listingTitle) listingTitle.value = "";
+    if (listingRent) listingRent.value = "";
+    if (listingLocation) listingLocation.value = "";
+    if (listingDesc) listingDesc.value = "";
 
-    listingMsg.textContent = "Listing posted! ✅";
-    listingMsg.style.color = "#27ae60";
-  } catch (error) {
-    listingMsg.textContent = "Error: " + error.message;
-    listingMsg.style.color = "#e74c3c";
+    setMsg(listingMsg, "Listing posted ✅", "success");
+    loadListings();
+  } catch (e) {
+    setMsg(listingMsg, "Error: " + e.message);
   } finally {
     postListingBtn.disabled = false;
     postListingBtn.textContent = "Post Listing";
   }
 });
 
-// ===============================================
-// 5e. LIVE LISTINGS LISTENER
-// ===============================================
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, (c) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-  }[c]));
-}
-
-let unsubscribeListings = null;
-
-function startListingsListener() {
-  loadListingsOnce();
-}
-
-async function loadListingsOnce() {
+async function loadListings() {
+  if (!listingsGrid) return;
   try {
     const q = query(collection(db, "listings"), orderBy("createdAt", "desc"));
     const snap = await getDocs(q);
+    const filterEl = document.querySelector('input[name="housing-filter"]:checked');
+    const filter = filterEl ? filterEl.value : "all";
 
     listingsGrid.innerHTML = "";
-    if (snap.empty) {
-      listingsGrid.textContent = "No listings yet.";
-      return;
-    }
+    let count = 0;
 
     snap.forEach((d) => {
       const l = d.data();
-      const q = (searchInput.value || "").toLowerCase().trim();
-      const isMine = auth.currentUser && l.user_id === auth.currentUser.uid;
+      if (filter !== "all" && l.housing_type !== filter) return;
+      count++;
+
       const card = document.createElement("div");
-      card.style.cssText = "border:1px solid #ddd;border-radius:8px;padding:12px;margin-bottom:10px;";
+      card.className = "item-card";
+
+      const typeLabel = {
+        "landlord": "🏢 Landlord",
+        "sublease": "🔄 Sublease",
+        "rent-room": "🚪 Rent Room",
+        "share-single": "🛏️ Share Single",
+        "shared-apt": "🏠 Shared Apt"
+      }[l.housing_type] || "";
+
       card.innerHTML = `
-        <strong>${escapeHtml(l.title)}</strong><br>
-        $${escapeHtml(l.rent)}/mo — ${escapeHtml(l.location)}<br>
-        <small>${escapeHtml(l.description || "")}</small>
+        ${typeLabel ? `<div class="type-badge">${typeLabel}</div>` : ""}
+        <strong>${escapeHtml(l.title)}</strong>
+        <div class="item-meta">$${escapeHtml(l.rent)}/mo · ${escapeHtml(l.location)}</div>
+        <div class="item-desc">${escapeHtml(l.description || "")}</div>
       `;
 
-      if (isMine) {
+      addPosterLine(card, l.user_id, l.owner_name);
+
+      // If own listing → Delete button
+      if (auth.currentUser && l.user_id === auth.currentUser.uid) {
         const del = document.createElement("button");
         del.textContent = "Delete";
-        del.style.cssText = "margin-top:8px;background:#e74c3c;width:auto;padding:6px 12px;";
+        del.className = "btn-small btn-danger";
         del.addEventListener("click", async () => {
+          if (!confirm("Delete?")) return;
           await deleteDoc(doc(db, "listings", d.id));
-          loadListingsOnce();
+          loadListings();
         });
         card.appendChild(del);
+        // Inside loadListings, the else block (not own listing):
+
       } else {
-        const reportBtn = document.createElement("button");
-        reportBtn.textContent = "Report";
-        reportBtn.style.cssText = "margin-top:8px;margin-left:6px;background:#f39c12;width:auto;padding:6px 12px;";
-        reportBtn.addEventListener("click", () => openReportDialog(d.id));
-        card.appendChild(reportBtn);
+        const commentCount = l.comment_count || 0;   // ← adjust field name if needed
+
+        const replyBtn = document.createElement("button");
+        replyBtn.textContent = `💬 ${commentCount}`;
+        replyBtn.className = "btn-small";
+        replyBtn.addEventListener("click", () => {
+          const commentForm = card.querySelector(".comment-form textarea");
+          if (commentForm) {
+            commentForm.scrollIntoView({ behavior: "smooth", block: "center" });
+            commentForm.focus();
+          }
+        });
+        card.appendChild(replyBtn);
+
+        // Interested button — unchanged
+        const attendees = l.attendees || [];
+        const alreadyInterested = auth.currentUser && attendees.includes(auth.currentUser.uid);
+        const interestedBtn = document.createElement("button");
+        interestedBtn.textContent = alreadyInterested ? "👍 Interested ✓" : "👍 Interested";
+        interestedBtn.disabled = alreadyInterested;
+        interestedBtn.className = "btn-small";
+        interestedBtn.addEventListener("click", async () => {
+          try {
+            await updateDoc(doc(db, "listings", d.id), {
+              attendees: arrayUnion(auth.currentUser.uid)
+            });
+            loadListings();
+          } catch (e) { alert("Error: " + e.message); }
+        });
+        card.appendChild(interestedBtn);
+
+        // Add comment section
+        addCommentSection(card, "listings", d.id, l.title);
       }
 
       listingsGrid.appendChild(card);
     });
-  } catch (error) {
-    listingsGrid.textContent = "Could not load listings: " + error.message;
+
+    if (count === 0) {
+      listingsGrid.innerHTML = '<p style="color:var(--text-muted);">No listings yet.</p>';
+    }
+  } catch (e) {
+    listingsGrid.innerHTML = `<p style="color:var(--error);">Error: ${escapeHtml(e.message)}</p>`;
   }
 }
+
 // ===============================================
-// 5h. POSTS (Food / Events / Free)
+// 13. FOOD / EVENTS
 // ===============================================
-postSubmitBtn.addEventListener("click", async () => {
+async function postGeneric(category, subtype, titleVal, locationVal, descVal, datetimeVal, msgEl, btn) {
+  const user = auth.currentUser;
+  if (!user) return;
+  if (!titleVal) return setMsg(msgEl, "Title required.");
+
+  btn.disabled = true;
+  btn.textContent = "Posting...";
+
+  try {
+    const payload = {
+      host_id: user.uid,
+      host_name: user.displayName || "user",
+      host_email: user.email || "",
+      category,
+      title: titleVal,
+      location: locationVal || "",
+      description: descVal || "",
+      datetime: datetimeVal || "",
+      attendees: [],
+      comment_count: 0,
+      createdAt: Date.now()
+    };
+
+    // Add the correct type field based on category
+    if (category === "food") payload.food_type = subtype;
+    if (category === "events") {
+      payload.event_type = subtype;
+      payload.going = [];
+    }
+
+    await addDoc(collection(db, "posts"), payload);
+    setMsg(msgEl, "Posted ✅", "success");
+  } catch (e) {
+    setMsg(msgEl, "Error: " + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Post";
+  }
+}
+
+postFoodBtn?.addEventListener("click", async () => {
+  await postGeneric(
+    "food",
+    selectedFoodType,
+    foodTitle?.value.trim(),
+    foodLocation?.value.trim(),
+    foodDesc?.value.trim(),
+    foodDatetime?.value || "",
+    foodMsg,
+    postFoodBtn
+  );
+  if (foodTitle) foodTitle.value = "";
+  if (foodLocation) foodLocation.value = "";
+  if (foodDesc) foodDesc.value = "";
+  if (foodDatetime) foodDatetime.value = "";
+  loadFood();
+});
+
+postEventBtn?.addEventListener("click", async () => {
+  await postGeneric(
+    "events",
+    selectedEventType,
+    eventTitle?.value.trim(),
+    eventLocation?.value.trim(),
+    eventDesc?.value.trim(),
+    eventDatetime?.value || "",
+    eventMsg,
+    postEventBtn
+  );
+  if (eventTitle) eventTitle.value = "";
+  if (eventLocation) eventLocation.value = "";
+  if (eventDesc) eventDesc.value = "";
+  if (eventDatetime) eventDatetime.value = "";
+  loadEvents();
+});
+
+async function loadCategoryPosts(category, gridEl) {
+  if (!gridEl) return;
+  try {
+    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    gridEl.innerHTML = "";
+    let count = 0;
+
+    snap.forEach((d) => {
+      const p = d.data();
+      if (p.category !== category) return;
+      count++;
+
+      const isHost = auth.currentUser && p.host_id === auth.currentUser.uid;
+      const attendees = p.attendees || [];
+      const goingList = p.going || [];
+      const alreadyInterested = auth.currentUser && attendees.includes(auth.currentUser.uid);
+      const alreadyGoing = auth.currentUser && goingList.includes(auth.currentUser.uid);
+      const dateLine = p.datetime ? `<div class="item-meta">🕒 ${escapeHtml(p.datetime)}</div>` : "";
+
+      // Type badge
+      let typeBadge = "";
+      if (category === "food" && p.food_type) {
+        const labels = {
+          "dining-out": "🍴 Dining Out",
+          "recommendations": "💡 Recommendations",
+          "cooking-partner": "👨‍🍳 Cooking Partner",
+          "recipe-ideas": "📖 Recipe Ideas",
+          "cooking-help": "🆘 Cooking Help"
+        };
+        typeBadge = `<div class="type-badge">${labels[p.food_type] || "🍽️ Food"}</div>`;
+      }
+      if (category === "events" && p.event_type) {
+        const labels = {
+          "going-out": "🎉 Going Out",
+          "explore": "🥾 Explore Together",
+          "recommendations": "💡 Recommendations",
+          "activity-partner": "👥 Activity Partner",
+          "free-event": "🆓 Free Event"
+        };
+        typeBadge = `<div class="type-badge">${labels[p.event_type] || "🎉 Event"}</div>`;
+      }
+
+      const card = document.createElement("div");
+      card.className = "item-card";
+      card.innerHTML = `
+        ${typeBadge}
+        <strong>${escapeHtml(p.title)}</strong>
+        <div class="item-meta">${escapeHtml(p.location || "")}</div>
+        ${dateLine}
+        <div class="item-desc">${escapeHtml(p.description || "")}</div>
+        <div class="item-meta">👥 ${attendees.length} interested${goingList.length ? ` · ✨ ${goingList.length} going` : ""}</div>
+      `;
+
+      addPosterLine(card, p.host_id, p.host_name);
+
+      if (!isHost) {
+        // Reply button (comment count)
+        const replyBtn = document.createElement("button");
+        replyBtn.textContent = `💬 ${p.comment_count || 0}`;
+        replyBtn.className = "btn-small";
+        replyBtn.addEventListener("click", () => {
+          const form = card.querySelector(".comment-form textarea");
+          if (form) {
+            form.scrollIntoView({ behavior: "smooth", block: "center" });
+            form.focus();
+          }
+        });
+        card.appendChild(replyBtn);
+
+        // Interested button — hidden for recommendations / recipe-ideas
+        const isQandA = (
+          (category === "food" && ["recommendations", "recipe-ideas"].includes(p.food_type)) ||
+          (category === "events" && p.event_type === "recommendations")
+        );
+
+        if (!isQandA) {
+          const interestedBtn = document.createElement("button");
+          interestedBtn.textContent = alreadyInterested ? "👍 Interested ✓" : "👍 Interested";
+          interestedBtn.disabled = alreadyInterested;
+          interestedBtn.className = "btn-small";
+          interestedBtn.addEventListener("click", async () => {
+            try {
+              await updateDoc(doc(db, "posts", d.id), {
+                attendees: arrayUnion(auth.currentUser.uid)
+              });
+              loadCategoryPosts(category, gridEl);
+            } catch (e) { alert("Error: " + e.message); }
+          });
+          card.appendChild(interestedBtn);
+        }
+
+        // Going button — only for events that aren't recommendations or activity-partner
+        if (category === "events" && !["recommendations", "activity-partner"].includes(p.event_type)) {
+          const goingBtn = document.createElement("button");
+          goingBtn.textContent = alreadyGoing ? "✨ Going ✓" : "✨ Going";
+          goingBtn.disabled = alreadyGoing;
+          goingBtn.className = "btn-small";
+          goingBtn.addEventListener("click", async () => {
+            try {
+              await updateDoc(doc(db, "posts", d.id), {
+                going: arrayUnion(auth.currentUser.uid)
+              });
+              loadCategoryPosts(category, gridEl);
+            } catch (e) { alert("Error: " + e.message); }
+          });
+          card.appendChild(goingBtn);
+        }
+      } else {
+        const del = document.createElement("button");
+        del.textContent = "Delete";
+        del.className = "btn-small btn-danger";
+        del.addEventListener("click", async () => {
+          if (!confirm("Delete?")) return;
+          await deleteDoc(doc(db, "posts", d.id));
+          loadCategoryPosts(category, gridEl);
+        });
+        card.appendChild(del);
+      }
+
+      // Comment section
+      addCommentSection(card, "posts", d.id);
+
+      gridEl.appendChild(card);
+    });
+
+    if (count === 0) gridEl.innerHTML = '<p style="color:var(--text-muted);">Nothing here yet.</p>';
+  } catch (e) {
+    gridEl.innerHTML = `<p style="color:var(--error);">Error: ${escapeHtml(e.message)}</p>`;
+  }
+}
+
+function loadFood()   { loadCategoryPosts("food",   foodGrid); }
+function loadEvents() { loadCategoryPosts("events", eventsGrid); }
+
+// ===============================================
+// 14. FREE & HELP
+// ===============================================
+const HELP_TYPES = {
+  stuff: { emoji: "🎁", label: "Stuff" },
+  request: { emoji: "📦", label: "Request" },
+  ride: { emoji: "🚗", label: "Ride" },
+  lend: { emoji: "🔧", label: "Lend" },
+  skill: { emoji: "🛠️", label: "Skill" },
+  study: { emoji: "📚", label: "Study" },
+  general: { emoji: "💬", label: "General" }
+};
+
+let selectedHelpType = "stuff";
+
+helpTypePicker?.querySelectorAll(".type-pill").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    helpTypePicker.querySelectorAll(".type-pill").forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    selectedHelpType = btn.dataset.type;
+
+    const placeholders = {
+      stuff: "Title (e.g., Free desk, Free books)",
+      request: "Title (e.g., Need boxes for moving)",
+      ride: "Title (e.g., Ride to SFO Sunday 6am)",
+      lend: "Title (e.g., Need a drill for the day)",
+      skill: "Title (e.g., Can review your resume)",
+      study: "Title (e.g., Study partner for CS 301, How is Prof Smith?)",
+      general: "Title (describe your post)"
+    };
+    if (freeTitle) freeTitle.placeholder = placeholders[selectedHelpType] || "Title";
+  });
+});
+
+// ===============================================
+// FOOD TYPE PICKER
+// ===============================================
+const foodTypePicker = $("food-type-picker");
+let selectedFoodType = "dining-out";
+
+foodTypePicker?.querySelectorAll(".type-pill").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    foodTypePicker.querySelectorAll(".type-pill").forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    selectedFoodType = btn.dataset.type;
+
+    const placeholders = {
+      "dining-out": "Title (e.g., Dinner at Tartine Friday, want company?)",
+      "recommendations": "Title (e.g., Best cheap eats near CSUEB?)",
+      "cooking-partner": "Title (e.g., Cooking Thai food Saturday, join me)",
+      "recipe-ideas": "Title (e.g., What can I make with rice, eggs, spinach?)",
+      "cooking-help": "Title (e.g., First time cooking — need guidance)"
+    };
+    const titleInput = document.getElementById("food-title");
+    if (titleInput) titleInput.placeholder = placeholders[selectedFoodType] || "Title";
+  });
+});
+
+// ===============================================
+// EVENT TYPE PICKER
+// ===============================================
+const eventTypePicker = $("event-type-picker");
+let selectedEventType = "going-out";
+
+eventTypePicker?.querySelectorAll(".type-pill").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    eventTypePicker.querySelectorAll(".type-pill").forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    selectedEventType = btn.dataset.type;
+
+    const placeholders = {
+      "going-out": "Title (e.g., Billie Eilish concert Friday — who's in?)",
+      "explore": "Title (e.g., Hiking Mission Peak Saturday morning)",
+      "recommendations": "Title (e.g., Best clubs near campus for a fun night?)",
+      "activity-partner": "Title (e.g., Looking for a gym buddy at 24 Hour Fitness)",
+      "free-event": "Title (e.g., Free concert in Golden Gate Park Sunday)"
+    };
+    const titleInput = document.getElementById("event-title");
+    if (titleInput) titleInput.placeholder = placeholders[selectedEventType] || "Title";
+
+    // Hide datetime for recommendations and activity partner
+    const datetimeInput = document.getElementById("event-datetime");
+    if (datetimeInput) {
+      datetimeInput.style.display = ["recommendations", "activity-partner"].includes(selectedEventType)
+        ? "none" : "block";
+    }
+  });
+});
+
+postFreeBtn?.addEventListener("click", async () => {
   const user = auth.currentUser;
   if (!user) return;
 
-  const category = postCategory.value;
-  const title    = postTitle.value.trim();
-  const location = postLocation.value.trim();
-  const desc     = postDesc.value.trim();
-  const dt       = category === "events" ? postDatetime.value : "";
+  const title = freeTitle?.value.trim();
+  const location = freeLocation?.value.trim() || "";
+  const desc = freeDesc?.value.trim() || "";
 
-  postMsg.textContent = "";
+  if (!title) return setMsg(freeMsg, "Title is required.");
 
-  if (!title || !location) {
-    postMsg.textContent = "Title and location required.";
-    postMsg.style.color = "#e74c3c";
-    return;
-  }
-  if (category === "events" && !dt) {
-    postMsg.textContent = "Date/time required for events.";
-    postMsg.style.color = "#e74c3c";
-    return;
-  }
-
-  postSubmitBtn.disabled = true;
-  postSubmitBtn.textContent = "Posting...";
+  postFreeBtn.disabled = true;
+  postFreeBtn.textContent = "Posting...";
 
   try {
     await addDoc(collection(db, "posts"), {
       host_id: user.uid,
       host_name: user.displayName || "user",
       host_email: user.email || "",
-      category,
+      category: "free",
+      help_type: selectedHelpType,
       title,
       location,
       description: desc,
-      datetime: dt,
       attendees: [],
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      comment_count: 0
     });
 
-    postTitle.value = "";
-    postLocation.value = "";
-    postDesc.value = "";
-    postDatetime.value = "";
+    if (freeTitle) freeTitle.value = "";
+    if (freeLocation) freeLocation.value = "";
+    if (freeDesc) freeDesc.value = "";
 
-    postMsg.textContent = "Posted! ✅";
-    postMsg.style.color = "#27ae60";
-    loadPostsOnce();
-    
+    setMsg(freeMsg, "Posted ✅", "success");
+    loadFree();
   } catch (e) {
-    postMsg.textContent = "Error: " + e.message;
-    postMsg.style.color = "#e74c3c";
+    setMsg(freeMsg, "Error: " + e.message);
   } finally {
-    postSubmitBtn.disabled = false;
-    postSubmitBtn.textContent = "Post";
+    postFreeBtn.disabled = false;
+    postFreeBtn.textContent = "Post";
   }
 });
 
-async function loadPostsOnce() {
+async function loadFree() {
+  const grid = document.getElementById("free-grid");
+  if (!grid) return;
+
   try {
     const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
     const snap = await getDocs(q);
 
-    const filter = document.querySelector('input[name="post-filter"]:checked').value;
+    const filterEl = document.querySelector('input[name="free-filter"]:checked');
+    const filter = filterEl ? filterEl.value : "all";
 
-    postsGrid.innerHTML = "";
-    if (snap.empty) {
-      postsGrid.textContent = "No posts yet.";
-      return;
-    }
+    grid.innerHTML = "";
+    let count = 0;
 
     snap.forEach((d) => {
       const p = d.data();
-      if (filter !== "all" && p.category !== filter) return;
+      if (p.category !== "free") return;
 
-      const q = (searchInput.value || "").toLowerCase().trim();
-    if (q) {
-      const hay = (p.title + " " + (p.description || "") + " " + p.location).toLowerCase();
-      if (!hay.includes(q)) return;
-    }
+      const helpType = p.help_type || "stuff";
+      if (filter !== "all" && helpType !== filter) return;
+      count++;
 
-      const isHost = auth.currentUser && p.host_id === auth.currentUser.uid;
+      const typeMeta = HELP_TYPES[helpType] || HELP_TYPES.general;
       const attendees = p.attendees || [];
-      const joined = auth.currentUser && attendees.includes(auth.currentUser.uid);
+      const alreadyInterested = auth.currentUser && attendees.includes(auth.currentUser.uid);
+      const isHost = auth.currentUser && p.host_id === auth.currentUser.uid;
+      const locationLine = p.location ? `<div class="item-meta">📍 ${escapeHtml(p.location)}</div>` : "";
 
       const card = document.createElement("div");
-      card.style.cssText = "border:1px solid #ddd;border-radius:8px;padding:12px;margin-bottom:10px;";
-
-      const dateLine = p.datetime ? `<br><small>${escapeHtml(p.datetime)}</small>` : "";
-      const joinLabel = p.category === "food" ? "I'm in" : p.category === "events" ? "Going" : "Claim";
-
-            card.innerHTML = `
-        <small style="color:#888;">${escapeHtml(p.category)}</small><br>
-        <strong>${escapeHtml(p.title)}</strong><br>
-        ${escapeHtml(p.location)}${dateLine}<br>
-        <small>${escapeHtml(p.description || "")}</small><br>
-        <small>Contact: ${escapeHtml(p.host_email || p.host_name || "—")}</small><br>
-        <small>${
-          p.category === "food" ? "Interested"
-          : p.category === "events" ? "Going"
-          : "Claimed"
-        }: ${attendees.length}</small>
+      card.className = "item-card";
+      card.innerHTML = `
+        <div class="type-badge">${typeMeta.emoji} ${typeMeta.label}</div>
+        <strong>${escapeHtml(p.title)}</strong>
+        ${locationLine}
+        <div class="item-desc">${escapeHtml(p.description || "")}</div>
+        <div class="item-meta">👥 ${attendees.length} interested</div>
       `;
 
+      addPosterLine(card, p.host_id, p.host_name);
+
       if (!isHost) {
-        const joinBtn = document.createElement("button");
-        joinBtn.textContent = joined ? "Joined ✓" : joinLabel;
-        joinBtn.disabled = joined;
-        joinBtn.style.cssText = "margin-top:8px;background:#3498db;width:auto;padding:6px 12px;";
-        joinBtn.addEventListener("click", async () => {
+        // Reply button
+        const replyBtn = document.createElement("button");
+        replyBtn.textContent = `💬 ${p.comment_count || 0}`;
+        replyBtn.className = "btn-small";
+        replyBtn.addEventListener("click", () => {
+          const form = card.querySelector(".comment-form textarea");
+          if (form) {
+            form.scrollIntoView({ behavior: "smooth", block: "center" });
+            form.focus();
+          }
+        });
+        card.appendChild(replyBtn);
+
+        // Interested button
+        const interestedBtn = document.createElement("button");
+        interestedBtn.textContent = alreadyInterested ? "👍 Interested ✓" : "👍 Interested";
+        interestedBtn.disabled = alreadyInterested;
+        interestedBtn.className = "btn-small";
+        interestedBtn.addEventListener("click", async () => {
           try {
             await updateDoc(doc(db, "posts", d.id), {
               attendees: arrayUnion(auth.currentUser.uid)
             });
-            loadPostsOnce();
-          } catch (e) {
-            alert("Could not join: " + e.message);
-          }
+            loadFree();
+          } catch (e) { alert("Error: " + e.message); }
         });
-        card.appendChild(joinBtn);
+        card.appendChild(interestedBtn);
       } else {
         const del = document.createElement("button");
         del.textContent = "Delete";
-        del.style.cssText = "margin-top:8px;background:#e74c3c;width:auto;padding:6px 12px;";
+        del.className = "btn-small btn-danger";
         del.addEventListener("click", async () => {
+          if (!confirm("Delete this post?")) return;
           await deleteDoc(doc(db, "posts", d.id));
-          loadPostsOnce();
+          loadFree();
         });
         card.appendChild(del);
       }
 
-      postsGrid.appendChild(card);
+      // Comment section
+      addCommentSection(card, "posts", d.id);
+
+      grid.appendChild(card);
     });
+
+    if (count === 0) {
+      grid.innerHTML = '<p style="color:var(--text-muted);">Nothing here yet. Be the first to post!</p>';
+    }
   } catch (e) {
-    postsGrid.textContent = "Could not load posts: " + e.message;
+    grid.innerHTML = `<p style="color:var(--error);">Error: ${escapeHtml(e.message)}</p>`;
   }
 }
-
-document.querySelectorAll('input[name="post-filter"]').forEach((r) => {
-  r.addEventListener("change", loadPostsOnce);
+document.querySelectorAll('input[name="free-filter"]').forEach((r) => {
+  r.addEventListener("change", loadFree);
 });
 
 // ===============================================
-// 5i. SEARCH INPUT LISTENER
+// 15. JOBS
 // ===============================================
-searchInput.addEventListener("input", () => {
-  loadListingsOnce();
-  loadPostsOnce();
-});
-
-// ===============================================
-// 5k. PROFILE VIEW / EDIT MODE TOGGLE
-// ===============================================
-editProfileBtn.addEventListener("click", () => {
-  profileViewMode.classList.add("hidden");
-  profileEditMode.classList.remove("hidden");
-});
-
-cancelProfileBtn.addEventListener("click", () => {
-  // Reload saved values from Firestore to discard unsaved changes
-  if (auth.currentUser) loadProfile(auth.currentUser);
-  profileEditMode.classList.add("hidden");
-  profileViewMode.classList.remove("hidden");
-});
-
-function renderProfileView() {
-  viewSchool.textContent = profileSchool.value.trim() || "—";
-  viewCity.textContent   = profileCity.value.trim()   || "—";
-  viewBio.textContent    = profileBio.value.trim()    || "—";
-
-  const interests = [];
-  document.querySelectorAll(".interests-grid input:checked").forEach((cb) => {
-    interests.push(cb.value);
-  });
-  viewInterests.textContent = interests.length > 0 ? interests.join(", ") : "—";
-}
-
-// ===============================================
-// 5l. JOB REFERRALS
-// ===============================================
-postJobBtn.addEventListener("click", async () => {
+postJobBtn?.addEventListener("click", async () => {
   const user = auth.currentUser;
   if (!user) return;
 
-  const title    = jobTitle.value.trim();
-  const company  = jobCompany.value.trim();
-  const location = jobLocation.value.trim();
-  const desc     = jobDesc.value.trim();
+  const title = jobTitle?.value.trim();
+  const company = jobCompany?.value.trim();
+  const location = jobLocation?.value.trim();
+  const desc = jobDesc?.value.trim();
+  const industry = jobIndustry?.value || "other";
 
-  jobMsg.textContent = "";
-
-  if (!title || !company) {
-    jobMsg.textContent = "Job title and company are required.";
-    jobMsg.style.color = "#e74c3c";
-    return;
-  }
+  if (!title || !company) return setMsg(jobMsg, "Title and company required.");
 
   postJobBtn.disabled = true;
   postJobBtn.textContent = "Posting...";
@@ -601,479 +1740,799 @@ postJobBtn.addEventListener("click", async () => {
       poster_id: user.uid,
       poster_name: user.displayName || "user",
       poster_email: user.email || "",
-      title,
-      company,
-      location,
-      description: desc,
+      industry, title, company, location, description: desc,
       requesters: [],
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      comment_count: 0,
     });
-
-    jobTitle.value = "";
-    jobCompany.value = "";
-    jobLocation.value = "";
-    jobDesc.value = "";
-
-    jobMsg.textContent = "Referral posted! ✅";
-    jobMsg.style.color = "#27ae60";
-    loadJobsOnce();
+    if (jobTitle) jobTitle.value = "";
+    if (jobCompany) jobCompany.value = "";
+    if (jobLocation) jobLocation.value = "";
+    if (jobDesc) jobDesc.value = "";
+    setMsg(jobMsg, "Referral posted ✅", "success");
+    loadJobs();
   } catch (e) {
-    jobMsg.textContent = "Error: " + e.message;
-    jobMsg.style.color = "#e74c3c";
+    setMsg(jobMsg, "Error: " + e.message);
   } finally {
     postJobBtn.disabled = false;
     postJobBtn.textContent = "Post Referral";
   }
 });
 
-async function loadJobsOnce() {
+async function loadJobs() {
+  if (!jobsGrid) return;
   try {
     const q = query(collection(db, "jobs"), orderBy("createdAt", "desc"));
     const snap = await getDocs(q);
-
     jobsGrid.innerHTML = "";
-    if (snap.empty) {
-      jobsGrid.textContent = "No job referrals yet.";
-      return;
-    }
+    let count = 0;
 
     snap.forEach((d) => {
       const j = d.data();
+      count++;
+
       const isMine = auth.currentUser && j.poster_id === auth.currentUser.uid;
       const requesters = j.requesters || [];
-      const alreadyRequested = auth.currentUser && requesters.includes(auth.currentUser.uid);
+      const alreadyInterested = auth.currentUser && requesters.includes(auth.currentUser.uid);
+
+      const industryLabel = {
+        "food-service": "🍔 Food Service", "cafe": "☕ Café",
+        "hospitality": "🏨 Hospitality", "retail": "🛍️ Retail",
+        "tech": "💻 Tech", "healthcare": "🏥 Healthcare",
+        "trades": "🏗️ Trades", "education": "📚 Education", "other": "📦 Other"
+      }[j.industry] || "";
 
       const card = document.createElement("div");
-      card.style.cssText = "border:1px solid #ddd;border-radius:8px;padding:12px;margin-bottom:10px;";
-
+      card.className = "item-card";
       card.innerHTML = `
-        <strong>${escapeHtml(j.title)}</strong> @ ${escapeHtml(j.company)}<br>
-        <small>📍 ${escapeHtml(j.location || "—")}</small><br>
-        <small>${escapeHtml(j.description || "")}</small><br>
-        <small>Contact: ${escapeHtml(j.poster_email || "—")}</small><br>
-        <small>Requesters: ${requesters.length}</small>
+        ${industryLabel ? `<div class="type-badge">${industryLabel}</div>` : ""}
+        <strong>${escapeHtml(j.title)} @ ${escapeHtml(j.company)}</strong>
+        <div class="item-meta">${escapeHtml(j.location || "")}</div>
+        <div class="item-desc">${escapeHtml(j.description || "")}</div>
+        <div class="item-meta">👥 ${requesters.length} interested</div>
       `;
 
+      addPosterLine(card, j.poster_id, j.poster_name);
+
       if (!isMine) {
-        const reqBtn = document.createElement("button");
-        reqBtn.textContent = alreadyRequested ? "Requested ✓" : "Request Referral";
-        reqBtn.disabled = alreadyRequested;
-        reqBtn.style.cssText = "margin-top:8px;background:#27ae60;width:auto;padding:6px 12px;";
-        reqBtn.addEventListener("click", async () => {
+        // Reply button
+        const replyBtn = document.createElement("button");
+        replyBtn.textContent = `💬 ${j.comment_count || 0}`;
+        replyBtn.className = "btn-small";
+        replyBtn.addEventListener("click", () => {
+          const form = card.querySelector(".comment-form textarea");
+          if (form) {
+            form.scrollIntoView({ behavior: "smooth", block: "center" });
+            form.focus();
+          }
+        });
+        card.appendChild(replyBtn);
+
+        // Interested button
+        const interestedBtn = document.createElement("button");
+        interestedBtn.textContent = alreadyInterested ? "👍 Interested ✓" : "👍 Interested";
+        interestedBtn.disabled = alreadyInterested;
+        interestedBtn.className = "btn-small";
+        interestedBtn.addEventListener("click", async () => {
           try {
             await updateDoc(doc(db, "jobs", d.id), {
               requesters: arrayUnion(auth.currentUser.uid)
             });
-            loadJobsOnce();
-          } catch (e) {
-            alert("Could not request: " + e.message);
-          }
+            loadJobs();
+          } catch (e) { alert("Error: " + e.message); }
         });
-        card.appendChild(reqBtn);
+        card.appendChild(interestedBtn);
       } else {
         const del = document.createElement("button");
         del.textContent = "Delete";
-        del.style.cssText = "margin-top:8px;background:#e74c3c;width:auto;padding:6px 12px;";
+        del.className = "btn-small btn-danger";
         del.addEventListener("click", async () => {
+          if (!confirm("Delete?")) return;
           await deleteDoc(doc(db, "jobs", d.id));
-          loadJobsOnce();
+          loadJobs();
         });
         card.appendChild(del);
       }
 
+      // Comment section
+      addCommentSection(card, "jobs", d.id);
+
       jobsGrid.appendChild(card);
     });
+
+    if (count === 0) {
+      jobsGrid.innerHTML = '<p style="color:var(--text-muted);">No referrals yet.</p>';
+    }
   } catch (e) {
-    jobsGrid.textContent = "Could not load jobs: " + e.message;
+    jobsGrid.innerHTML = `<p style="color:var(--error);">Error: ${escapeHtml(e.message)}</p>`;
   }
 }
 
 // ===============================================
-// 5m. HEAR ME OUT
+// 16. HEAR ME OUT
 // ===============================================
-const SUPPORT_REACTIONS = [
+const REACTIONS = [
   { emoji: "🤗", label: "I hear you" },
   { emoji: "💪", label: "You've got this" },
   { emoji: "💙", label: "You're not alone" },
   { emoji: "🙏", label: "Thanks for sharing" }
 ];
 
-hearPostBtn.addEventListener("click", async () => {
+hearPostBtn?.addEventListener("click", async () => {
   const user = auth.currentUser;
   if (!user) return;
+  const text = hearDesc?.value.trim();
+  if (!text) return setMsg(hearMsg, "Write something first.");
+  if (text.length > 1000) return setMsg(hearMsg, "Keep it under 1000 characters.");
 
-  const text = hearDesc.value.trim();
-  hearMsg.textContent = "";
-
-  if (!text) {
-    hearMsg.textContent = "Please write something before sharing.";
-    hearMsg.style.color = "#e74c3c";
-    return;
-  }
-  if (text.length > 1000) {
-    hearMsg.textContent = "Please keep it under 1000 characters.";
-    hearMsg.style.color = "#e74c3c";
-    return;
-  }
-
-  const isAnon = anonymousCheckbox.checked;
+  const anon = anonymousCheckbox?.checked;
 
   hearPostBtn.disabled = true;
   hearPostBtn.textContent = "Sharing...";
-
   try {
     await addDoc(collection(db, "hear_me_out"), {
       author_id: user.uid,
-      author_name: isAnon ? "Anonymous" : (user.displayName || "user"),
-      is_anonymous: isAnon,
+      author_name: anon ? "Anonymous" : (user.displayName || "user"),
+      is_anonymous: anon,
       text,
       reactions: {},
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      comment_count: 0,
     });
-
-    hearDesc.value = "";
-    anonymousCheckbox.checked = false;
-    hearMsg.textContent = "Thanks for sharing. You're not alone. 💙";
-    hearMsg.style.color = "#27ae60";
-    loadHearPosts();
+    if (hearDesc) hearDesc.value = "";
+    if (anonymousCheckbox) anonymousCheckbox.checked = false;
+    setMsg(hearMsg, "Thanks for sharing. You're not alone. 💙", "success");
+    loadHear();
   } catch (e) {
-    hearMsg.textContent = "Error: " + e.message;
-    hearMsg.style.color = "#e74c3c";
+    setMsg(hearMsg, "Error: " + e.message);
   } finally {
     hearPostBtn.disabled = false;
     hearPostBtn.textContent = "Share";
   }
 });
 
-async function loadHearPosts() {
+async function loadHear() {
+  if (!hearPostsGrid) return;
   try {
-    const q = query(
-      collection(db, "hear_me_out"),
-      orderBy("createdAt", "desc"),
-      limit(30)
-    );
+    const q = query(collection(db, "hear_me_out"), orderBy("createdAt", "desc"), limit(30));
     const snap = await getDocs(q);
-
     hearPostsGrid.innerHTML = "";
-    if (snap.empty) {
-      hearPostsGrid.innerHTML =
-        '<p style="color:#888;font-size:14px;">No posts yet. Be the first to share.</p>';
-      return;
-    }
+    let count = 0;
 
     snap.forEach((d) => {
       const h = d.data();
-      const reactions = h.reactions || {};
+      count++;
+      const likes = h.likes || [];
       const isMine = auth.currentUser && h.author_id === auth.currentUser.uid;
+      const alreadyLiked = auth.currentUser && likes.includes(auth.currentUser.uid);
 
       const card = document.createElement("div");
-      card.style.cssText =
-        "border:1px solid #ddd;border-radius:8px;padding:12px;margin-bottom:10px;background:#fafafa;";
-
-      const reactionCounts = SUPPORT_REACTIONS.map((r) => {
-        const count = (reactions[r.emoji] || []).length;
-        return `${r.emoji} ${count}`;
-      }).join(" · ");
-
+      card.className = "item-card";
       card.innerHTML = `
-        <div style="font-size:13px;color:#888;margin-bottom:6px;">
-          <strong>${escapeHtml(h.author_name || "Anonymous")}</strong>
-        </div>
-        <p style="margin-bottom:10px;white-space:pre-wrap;">${escapeHtml(h.text)}</p>
-        <small style="color:#666;">${reactionCounts}</small>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:6px;"><strong>${escapeHtml(h.author_name || "Anonymous")}</strong></div>
+        <div class="item-desc" style="white-space:pre-wrap;">${escapeHtml(h.text)}</div>
+        <div class="item-meta" style="margin-top:8px;">❤️ ${likes.length}</div>
       `;
 
-      const reactionRow = document.createElement("div");
-      reactionRow.style.cssText = "margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;";
-
-      SUPPORT_REACTIONS.forEach((r) => {
-        const list = reactions[r.emoji] || [];
-        const alreadyReacted = auth.currentUser && list.includes(auth.currentUser.uid);
-
-        const btn = document.createElement("button");
-        btn.textContent = `${r.emoji} ${r.label}`;
-        btn.disabled = alreadyReacted;
-        btn.style.cssText = `
-          background: ${alreadyReacted ? "#d4edda" : "#eef4f9"};
-          color: #333;
-          width: auto;
-          padding: 6px 10px;
-          font-size: 13px;
-          border: 1px solid ${alreadyReacted ? "#27ae60" : "#c5d8e8"};
-        `;
-        if (!alreadyReacted) {
-          btn.addEventListener("click", async () => {
-            try {
-              await updateDoc(doc(db, "hear_me_out", d.id), {
-                [`reactions.${r.emoji}`]: arrayUnion(auth.currentUser.uid)
-              });
-              loadHearPosts();
-            } catch (e) {
-              alert("Could not react: " + e.message);
-            }
-          });
-        }
-        reactionRow.appendChild(btn);
-      });
-
       if (!isMine) {
-        const reportBtn = document.createElement("button");
-        reportBtn.textContent = "🚩 Report";
-        reportBtn.style.cssText = "background:#f39c12;width:auto;padding:6px 10px;font-size:13px;";
-        reportBtn.addEventListener("click", async () => {
-          const reason = prompt(
-            "Report this post:\n\n1. Harmful content\n2. Harassment\n3. Spam\n4. Other"
-          );
-          if (!reason) return;
-          const reasons = ["Harmful content", "Harassment", "Spam", "Other"];
-          const idx = parseInt(reason.trim(), 10) - 1;
-          if (isNaN(idx) || idx < 0 || idx >= reasons.length) return;
-          try {
-            await addDoc(collection(db, "reports"), {
-              reporter_id: auth.currentUser.uid,
-              listing_id: d.id,
-              post_type: "hear_me_out",
-              reason: reasons[idx],
-              status: "open",
-              createdAt: Date.now()
-            });
-            alert("Report submitted. Thank you for keeping OneRoof safe.");
-          } catch (e) {
-            alert("Could not report: " + e.message);
+        // Reply button
+        const replyBtn = document.createElement("button");
+        replyBtn.textContent = `💬 ${h.comment_count || 0}`;
+        replyBtn.className = "btn-small";
+        replyBtn.addEventListener("click", () => {
+          const form = card.querySelector(".comment-form textarea");
+          if (form) {
+            form.scrollIntoView({ behavior: "smooth", block: "center" });
+            form.focus();
           }
         });
-        reactionRow.appendChild(reportBtn);
+        card.appendChild(replyBtn);
+
+        // Like button
+        const likeBtn = document.createElement("button");
+        likeBtn.textContent = alreadyLiked ? "❤️ Liked ✓" : "❤️ Like";
+        likeBtn.disabled = alreadyLiked;
+        likeBtn.className = "btn-small";
+        likeBtn.addEventListener("click", async () => {
+          try {
+            await updateDoc(doc(db, "hear_me_out", d.id), {
+              likes: arrayUnion(auth.currentUser.uid)
+            });
+            loadHear();
+          } catch (e) { alert("Error: " + e.message); }
+        });
+        card.appendChild(likeBtn);
       } else {
         const del = document.createElement("button");
         del.textContent = "Delete";
-        del.style.cssText = "background:#e74c3c;width:auto;padding:6px 10px;font-size:13px;";
+        del.className = "btn-small btn-danger";
         del.addEventListener("click", async () => {
-          if (!confirm("Delete this post?")) return;
+          if (!confirm("Delete?")) return;
           await deleteDoc(doc(db, "hear_me_out", d.id));
-          loadHearPosts();
+          loadHear();
         });
-        reactionRow.appendChild(del);
+        card.appendChild(del);
       }
 
-      card.appendChild(reactionRow);
+      // Comment section
+      addCommentSection(card, "hear_me_out", d.id);
+
       hearPostsGrid.appendChild(card);
     });
-  } catch (e) {
-    hearPostsGrid.textContent = "Could not load posts: " + e.message;
-  }
-}
 
-// Resend verification email
-resendVerifyBtn.addEventListener("click", async () => {
-  const user = auth.currentUser;
-  if (!user) return;
-  try {
-    await sendEmailVerification(user);
-    verifyMsg.textContent = "Verification email sent! Check your inbox.";
-    verifyMsg.style.color = "#27ae60";
+    if (count === 0) {
+      hearPostsGrid.innerHTML = '<p style="color:var(--text-muted);">No posts yet.</p>';
+    }
   } catch (e) {
-    verifyMsg.textContent = "Error: " + e.message;
-    verifyMsg.style.color = "#e74c3c";
-  }
-});
-
-// Update UI based on verification status
-function updateVerificationUI(user) {
-  if (user.emailVerified) {
-    verifiedBadge.classList.remove("hidden");
-    verifyBanner.classList.add("hidden");
-  } else {
-    verifiedBadge.classList.add("hidden");
-    verifyBanner.classList.remove("hidden");
+    hearPostsGrid.innerHTML = `<p style="color:var(--error);">Error: ${escapeHtml(e.message)}</p>`;
   }
 }
 
 // ===============================================
-// 6. LOGIN
+// 17. CRIME ALERTS
 // ===============================================
-loginBtn.addEventListener("click", async () => {
-  const email = loginEmail.value.trim();
-  const pass  = loginPass.value;
-
-  loginMsg.textContent = "";
-
-  if (!email || !pass) {
-    loginMsg.textContent = "Please enter email and password.";
-    return;
-  }
-
-  loginBtn.disabled = true;
-  loginBtn.textContent = "Logging in...";
-
-  try {
-    await signInWithEmailAndPassword(auth, email, pass);
-  } catch (error) {
-    loginMsg.textContent = "Error: " + error.message;
-  } finally {
-    loginBtn.disabled = false;
-    loginBtn.textContent = "Log In";
-  }
-});
-
-// ===============================================
-// 7. LOGOUT
-// ===============================================
-logoutBtn.addEventListener("click", async () => {
-  await signOut(auth);
-});
-
-// ===============================================
-// 5f. REPORT DIALOG + SUBMIT
-// ===============================================
-const REPORT_REASONS = ["Spam", "Scam", "Inappropriate", "Other"];
-
-async function openReportDialog(listingId) {
-  const reason = prompt(
-    "Why report this listing?\n\n" + REPORT_REASONS.map((r, i) => `${i + 1}. ${r}`).join("\n") +
-    "\n\nEnter number (1-4):"
-  );
-  if (!reason) return;
-
-  const idx = parseInt(reason.trim(), 10) - 1;
-  if (isNaN(idx) || idx < 0 || idx >= REPORT_REASONS.length) {
-    alert("Invalid choice.");
-    return;
-  }
-
+postAlertBtn?.addEventListener("click", async () => {
   const user = auth.currentUser;
   if (!user) return;
 
+  const location = alertLocation?.value.trim();
+  const desc = alertDesc?.value.trim();
+  const type = alertType?.value || "crime";
+  const severity = alertSeverity?.value || "medium";
+  const anon = alertAnonymous?.checked;
+
+  if (!location || !desc) return setMsg(alertMsg, "Location and description required.");
+
+  postAlertBtn.disabled = true;
+  postAlertBtn.textContent = "Posting...";
+
   try {
-    await addDoc(collection(db, "reports"), {
+    await addDoc(collection(db, "crime_alerts"), {
       reporter_id: user.uid,
-      listing_id: listingId,
-      reason: REPORT_REASONS[idx],
-      status: "open",
-      createdAt: Date.now()
+      reporter_name: anon ? "Anonymous" : (user.displayName || "user"),
+      is_anonymous: anon,
+      alert_type: type,
+      severity,
+      location,
+      description: desc,
+      likes: [],
+      aware: [],
+      createdAt: Date.now(),
+      comment_count: 0
     });
-    alert("Report submitted. Thank you.");
+    if (alertLocation) alertLocation.value = "";
+    if (alertDesc) alertDesc.value = "";
+    if (alertAnonymous) alertAnonymous.checked = false;
+    setMsg(alertMsg, "Alert posted. Stay safe.", "success");
+    loadAlerts();
   } catch (e) {
-    alert("Could not submit report: " + e.message);
+    setMsg(alertMsg, "Error: " + e.message);
+  } finally {
+    postAlertBtn.disabled = false;
+    postAlertBtn.textContent = "Post Alert";
+  }
+});
+
+async function loadAlerts() {
+  if (!alertsGrid) return;
+  try {
+    const q = query(collection(db, "crime_alerts"), orderBy("createdAt", "desc"), limit(30));
+    const snap = await getDocs(q);
+    alertsGrid.innerHTML = "";
+    let count = 0;
+
+    snap.forEach((d) => {
+      const a = d.data();
+      count++;
+
+      const likes = a.likes || [];
+      const aware = a.aware || [];
+      const isMine = auth.currentUser && a.reporter_id === auth.currentUser.uid;
+      const alreadyLiked = auth.currentUser && likes.includes(auth.currentUser.uid);
+      const alreadyAware = auth.currentUser && aware.includes(auth.currentUser.uid);
+
+      const typeEmoji = {
+        crime: "🚨", suspicious: "👤", "unsafe-area": "⚠️", encounter: "😰"
+      }[a.alert_type] || "🚨";
+
+      const sevLabel = {
+        low: "Low", medium: "Medium", high: "High"
+      }[a.severity] || "Medium";
+
+      const sevColor = {
+        low: "var(--success)", medium: "var(--warning)", high: "var(--error)"
+      }[a.severity] || "var(--warning)";
+
+      const card = document.createElement("div");
+      card.className = "item-card";
+      card.innerHTML = `
+        <div class="type-badge" style="background:${sevColor}22;color:${sevColor};">
+          ${typeEmoji} ${escapeHtml(a.alert_type)} · ${sevLabel}
+        </div>
+        <strong>${escapeHtml(a.location)}</strong>
+        <div class="item-desc">${escapeHtml(a.description)}</div>
+        <div class="item-meta">Reported by ${escapeHtml(a.reporter_name)} · ${new Date(a.createdAt).toLocaleString()}</div>
+        <div class="item-meta">❤️ ${likes.length} · 👍 ${aware.length} aware</div>
+      `;
+
+      if (!isMine) {
+        // Reply button
+        const replyBtn = document.createElement("button");
+        replyBtn.textContent = `💬 ${a.comment_count || 0}`;
+        replyBtn.className = "btn-small";
+        replyBtn.addEventListener("click", () => {
+          const form = card.querySelector(".comment-form textarea");
+          if (form) {
+            form.scrollIntoView({ behavior: "smooth", block: "center" });
+            form.focus();
+          }
+        });
+        card.appendChild(replyBtn);
+
+        // Like button
+        const likeBtn = document.createElement("button");
+        likeBtn.textContent = alreadyLiked ? "❤️ Liked ✓" : "❤️ Like";
+        likeBtn.disabled = alreadyLiked;
+        likeBtn.className = "btn-small";
+        likeBtn.addEventListener("click", async () => {
+          try {
+            await updateDoc(doc(db, "crime_alerts", d.id), {
+              likes: arrayUnion(auth.currentUser.uid)
+            });
+            loadAlerts();
+          } catch (e) { alert("Error: " + e.message); }
+        });
+        card.appendChild(likeBtn);
+
+        // Aware button
+        const awareBtn = document.createElement("button");
+        awareBtn.textContent = alreadyAware ? "👍 Aware ✓" : "👍 Aware";
+        awareBtn.disabled = alreadyAware;
+        awareBtn.className = "btn-small";
+        awareBtn.addEventListener("click", async () => {
+          try {
+            await updateDoc(doc(db, "crime_alerts", d.id), {
+              aware: arrayUnion(auth.currentUser.uid)
+            });
+            loadAlerts();
+          } catch (e) { alert("Error: " + e.message); }
+        });
+        card.appendChild(awareBtn);
+      } else {
+        const del = document.createElement("button");
+        del.textContent = "Delete";
+        del.className = "btn-small btn-danger";
+        del.addEventListener("click", async () => {
+          if (!confirm("Delete?")) return;
+          await deleteDoc(doc(db, "crime_alerts", d.id));
+          loadAlerts();
+        });
+        card.appendChild(del);
+      }
+
+      // Comment section
+      addCommentSection(card, "crime_alerts", d.id);
+
+      alertsGrid.appendChild(card);
+    });
+
+    if (count === 0) {
+      alertsGrid.innerHTML = '<p style="color:var(--text-muted);">No alerts yet.</p>';
+    }
+  } catch (e) {
+    alertsGrid.innerHTML = `<p style="color:var(--error);">Error: ${escapeHtml(e.message)}</p>`;
   }
 }
-
 // ===============================================
-// 5g. MODERATOR: LOAD REPORTS
+// 18. MODERATION
 // ===============================================
-const MOD_UID = "K6lW6rwoOOcihtjeaQctY6jp4a62";
-
 async function loadReports() {
+  if (!reportsList) return;
   if (!auth.currentUser || auth.currentUser.uid !== MOD_UID) return;
 
-  modPanel.classList.remove("hidden");
+  modNavLink?.classList.remove("hidden");
   reportsList.innerHTML = "Loading...";
 
   try {
+    const q = query(collection(db, "reports"), where("status", "==", "open"), limit(50));
+    const snap = await getDocs(q);
+
+    reportsList.innerHTML = "";
+    if (snap.empty) {
+      reportsList.innerHTML = '<p style="color:var(--text-muted);">No open reports. 🎉</p>';
+      return;
+    }
+
+    const reports = [];
+    snap.forEach((d) => reports.push({ id: d.id, ...d.data() }));
+    reports.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+    reports.forEach((r) => {
+      const row = document.createElement("div");
+      row.className = "item-card";
+
+      row.innerHTML = `
+        <strong>🚩 ${escapeHtml(r.reason)}</strong>
+        <div class="item-meta">Type: ${escapeHtml(r.post_type || "unknown")}</div>
+        <div class="item-meta">Post: ${escapeHtml(r.post_title || r.listing_id || "")}</div>
+        <div class="item-meta">Reporter: ${escapeHtml(r.reporter_email || r.reporter_id || "")}</div>
+      `;
+
+      const resolveBtn = document.createElement("button");
+      resolveBtn.textContent = "Resolve";
+      resolveBtn.className = "btn-small btn-success";
+      resolveBtn.addEventListener("click", async () => {
+        await setDoc(doc(db, "reports", r.id), { status: "resolved" }, { merge: true });
+        loadReports();
+      });
+
+      row.appendChild(resolveBtn);
+      reportsList.appendChild(row);
+    });
+  } catch (e) {
+    reportsList.innerHTML = `<p style="color:var(--error);">Error: ${escapeHtml(e.message)}</p>`;
+  }
+}
+
+// ===============================================
+// 19. HUB COUNTS
+// ===============================================
+async function updateHubCounts() {
+  try {
+    const listingsSnap = await getDocs(collection(db, "listings"));
+    const postsSnap = await getDocs(collection(db, "posts"));
+    const jobsSnap = await getDocs(collection(db, "jobs"));
+    const hearSnap = await getDocs(collection(db, "hear_me_out"));
+    const alertsSnap = await getDocs(collection(db, "crime_alerts"));
+
+    let foodCount = 0, eventCount = 0, freeCount = 0;
+    postsSnap.forEach((d) => {
+      const p = d.data();
+      if (p.category === "food") foodCount++;
+      if (p.category === "events") eventCount++;
+      if (p.category === "free") freeCount++;
+    });
+
+    const set = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    };
+
+    set("hub-count-housing", listingsSnap.size);
+    set("hub-count-food", foodCount);
+    set("hub-count-events", eventCount);
+    set("hub-count-free", freeCount);
+    set("hub-count-jobs", jobsSnap.size);
+    set("hub-count-hear", hearSnap.size);
+    set("hub-count-alerts", alertsSnap.size);
+  } catch (e) {
+    console.warn("Hub counts error:", e.message);
+  }
+}
+// ===============================================
+// COMMENTS — with nested replies
+// ===============================================
+function addCommentSection(card, collectionName, postId) {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const section = document.createElement("div");
+  section.className = "comment-section";
+  section.innerHTML = `
+    <div class="comment-list"></div>
+    <div class="comment-form">
+      <textarea placeholder="Write a comment..." rows="2"></textarea>
+      <button class="btn-small">Reply</button>
+    </div>
+  `;
+  card.appendChild(section);
+
+  loadComments(section, collectionName, postId);
+
+  const sendBtn = section.querySelector(".comment-form button");
+  const textarea = section.querySelector(".comment-form textarea");
+
+  sendBtn.addEventListener("click", async () => {
+    const text = textarea.value.trim();
+    if (!text) return;
+
+    sendBtn.disabled = true;
+    sendBtn.textContent = "Sending...";
+
+    try {
+      await addDoc(collection(db, collectionName, postId, "comments"), {
+        author_id: user.uid,
+        author_name: user.displayName || "user",
+        text,
+        parent_id: null,                    // top-level comment
+        createdAt: Date.now()
+      });
+
+      // Increment comment_count on the parent post
+      try {
+        await updateDoc(doc(db, collectionName, postId), {
+          comment_count: increment(1)
+        });
+      } catch (e) { console.warn(e.message); }
+
+      textarea.value = "";
+      loadComments(section, collectionName, postId);
+    } catch (e) {
+      alert("Error: " + e.message);
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.textContent = "Send";
+    }
+  });
+}
+
+async function loadComments(container, collectionName, postId) {
+  const list = container.querySelector(".comment-list");
+  if (!list) return;
+
+  try {
     const q = query(
-      collection(db, "reports"),
-      where("status", "==", "open"),
-      orderBy("createdAt", "desc"),
+      collection(db, collectionName, postId, "comments"),
+      orderBy("createdAt", "asc"),
       limit(50)
     );
     const snap = await getDocs(q);
 
-    reportsList.innerHTML = "";
+    list.innerHTML = "";
     if (snap.empty) {
-      reportsList.textContent = "No open reports.";
+      list.innerHTML = '<p class="comment-empty">No comments yet — be the first!</p>';
       return;
     }
 
-    snap.forEach((d) => {
-      const r = d.data();
-      const row = document.createElement("div");
-      row.style.cssText = "border:1px solid #ddd;border-radius:8px;padding:12px;margin-bottom:10px;";
+    // Separate top-level comments and replies
+    const allComments = [];
+    snap.forEach((d) => allComments.push({ id: d.id, ...d.data() }));
 
-      const resolveBtn = document.createElement("button");
-      resolveBtn.textContent = "Resolve";
-      resolveBtn.style.cssText = "margin-top:8px;background:#27ae60;width:auto;padding:6px 12px;";
-      resolveBtn.addEventListener("click", async () => {
-        try {
-          await setDoc(doc(db, "reports", d.id), { status: "resolved" }, { merge: true });
-          loadReports();
-        } catch (e) {
-          modMsg.textContent = "Error: " + e.message;
-          modMsg.style.color = "#e74c3c";
-        }
-      });
+    const topLevel = allComments.filter((c) => !c.parent_id);
+    const replies = allComments.filter((c) => c.parent_id);
 
-      const deleteListingBtn = document.createElement("button");
-      deleteListingBtn.textContent = "Delete Listing";
-      deleteListingBtn.style.cssText = "margin-top:8px;margin-left:6px;background:#e74c3c;width:auto;padding:6px 12px;";
-      deleteListingBtn.addEventListener("click", async () => {
-        try {
-          await deleteDoc(doc(db, "listings", r.listing_id));
-          await setDoc(doc(db, "reports", d.id), { status: "resolved" }, { merge: true });
-          loadReports();
-          loadListingsOnce();
-        } catch (e) {
-          modMsg.textContent = "Error: " + e.message;
-          modMsg.style.color = "#e74c3c";
-        }
-      });
-
-      row.innerHTML = `
-        <strong>${escapeHtml(r.reason)}</strong><br>
-        <small>Listing: ${escapeHtml(r.listing_id)}</small><br>
-        <small>Reporter: ${escapeHtml(r.reporter_id)}</small>
-      `;
-      row.appendChild(resolveBtn);
-      row.appendChild(deleteListingBtn);
-      reportsList.appendChild(row);
+    // Render top-level comments with their replies
+    topLevel.forEach((c) => {
+      const item = renderCommentItem(c, replies, collectionName, postId, container);
+      list.appendChild(item);
     });
   } catch (e) {
-    reportsList.textContent = "Could not load reports: " + e.message;
+    list.innerHTML = `<p class="comment-error">Error: ${escapeHtml(e.message)}</p>`;
   }
 }
+
+function renderCommentItem(comment, allReplies, collectionName, postId, container) {
+  const row = document.createElement("div");
+  row.className = "comment-item";
+
+  const timeAgo = formatTimeAgo(comment.createdAt);
+  row.innerHTML = `
+    <div class="comment-author">
+      <strong>${escapeHtml(comment.author_name || "user")}</strong>
+      <span class="comment-time">${timeAgo}</span>
+    </div>
+    <div class="comment-text">${escapeHtml(comment.text)}</div>
+    <button class="comment-reply-btn">Reply</button>
+  `;
+
+  // Reply button — shows a reply form under this comment
+  const replyBtn = row.querySelector(".comment-reply-btn");
+  replyBtn.addEventListener("click", () => {
+    // Toggle the reply form
+    let form = row.querySelector(".reply-form");
+    if (form) {
+      form.remove();
+      return;
+    }
+
+    form = document.createElement("div");
+    form.className = "reply-form";
+    form.innerHTML = `
+      <textarea placeholder="Write a reply..." rows="2"></textarea>
+      <button class="btn-small">Reply</button>
+    `;
+    row.appendChild(form);
+
+    const sendBtn = form.querySelector("button");
+    const textarea = form.querySelector("textarea");
+    textarea.focus();
+
+    sendBtn.addEventListener("click", async () => {
+      const text = textarea.value.trim();
+      if (!text) return;
+
+      sendBtn.disabled = true;
+      sendBtn.textContent = "Replying...";
+
+      try {
+        await addDoc(collection(db, collectionName, postId, "comments"), {
+          author_id: auth.currentUser.uid,
+          author_name: auth.currentUser.displayName || "user",
+          text,
+          parent_id: comment.id,           // ← this is a reply to the comment
+          createdAt: Date.now()
+        });
+
+        try {
+          await updateDoc(doc(db, collectionName, postId), {
+            comment_count: increment(1)
+          });
+        } catch (e) { console.warn(e.message); }
+
+        form.remove();
+        loadComments(container, collectionName, postId);
+      } catch (e) {
+        alert("Error: " + e.message);
+        sendBtn.disabled = false;
+        sendBtn.textContent = "Reply";
+      }
+    });
+  });
+
+  // Render replies nested under this comment
+  const commentReplies = allReplies.filter((r) => r.parent_id === comment.id);
+  if (commentReplies.length > 0) {
+    const repliesWrapper = document.createElement("div");
+    repliesWrapper.className = "comment-replies";
+
+    commentReplies.forEach((r) => {
+      const replyItem = document.createElement("div");
+      replyItem.className = "comment-item comment-reply";
+      const timeAgo = formatTimeAgo(r.createdAt);
+      replyItem.innerHTML = `
+        <div class="comment-author">
+          <strong>${escapeHtml(r.author_name || "user")}</strong>
+          <span class="comment-time">${timeAgo}</span>
+        </div>
+        <div class="comment-text">${escapeHtml(r.text)}</div>
+      `;
+      repliesWrapper.appendChild(replyItem);
+    });
+
+    row.appendChild(repliesWrapper);
+  }
+
+  return row;
+}
 // ===============================================
-// 8. AUTH STATE WATCHER
+// 20. AUTH STATE WATCHER
 // ===============================================
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    loginView.classList.add("hidden");
-    registerView.classList.add("hidden");
-    dashboardSection.classList.remove("hidden");
+    showDashboard();
 
-    userName.textContent  = user.displayName || "friend";
-    userEmail.textContent = user.email;
-    updateVerificationUI(user); 
+    if (userName) userName.textContent = user.displayName || "Wellcome";
+    document.getElementById("verified-badge")?.classList.add("hidden");
+    document.getElementById("unverified-badge")?.classList.add("hidden");
+    if (userEmail) userEmail.textContent = user.email;
+    if (headerUserName) headerUserName.textContent = (user.displayName || "User").split(" ")[0];
+    if (dropdownName) dropdownName.textContent = user.displayName || "User";
+    if (dropdownEmail) dropdownEmail.textContent = user.email;
 
-    // Clear form before loading (prevents stale data from previous user)
-    profileSchool.value = "";
-    profileCity.value   = "";
-    profileBio.value    = "";
-    document.querySelectorAll(".interests-grid input").forEach((cb) => {
-      cb.checked = false;
-    });
-    profileMsg.textContent = "";
+    headerNavOut?.classList.add("hidden");
+    headerNavIn?.classList.remove("hidden");
+    searchToggleBtn?.classList.remove("hidden");
+
+    updateVerificationUI(user);
+
+    if (user.uid === MOD_UID) {
+      modNavLink?.classList.remove("hidden");
+    } else {
+      modNavLink?.classList.add("hidden");
+    }
 
     await loadProfile(user);
-    startListingsListener();
-    loadReports();
-    loadPostsOnce();
-    loadJobsOnce();
-    loadHearPosts();
 
+    try {
+      const [listings, posts, jobs] = await Promise.all([
+        getDocs(query(collection(db, "listings"), where("user_id", "==", user.uid))),
+        getDocs(query(collection(db, "posts"), where("host_id", "==", user.uid))),
+        getDocs(query(collection(db, "jobs"), where("poster_id", "==", user.uid)))
+      ]);
+      const elL = document.getElementById("count-listings");
+      const elP = document.getElementById("count-posts");
+      const elJ = document.getElementById("count-jobs");
+      if (elL) elL.textContent = listings.size;
+      if (elP) elP.textContent = posts.size;
+      if (elJ) elJ.textContent = jobs.size;
+    } catch (e) {
+      console.warn("Activity counts error:", e.message);
+    }
+
+    updateOwnVouches(user.uid);
+    showPage("home");
+    updateHubCounts();
   } else {
-    dashboardSection.classList.add("hidden");
-    registerView.classList.add("hidden");
-    loginView.classList.add("hidden");     
-    document.getElementById("landing-view").classList.remove("hidden");   
+    showLanding();
 
-    registerName.value = registerEmail.value = registerPass.value = "";
-    loginEmail.value   = loginPass.value = "";
-    registerMsg.textContent = loginMsg.textContent = profileMsg.textContent = "";
+    headerNavOut?.classList.remove("hidden");
+    headerNavIn?.classList.add("hidden");
+    searchToggleBtn?.classList.add("hidden");
+    searchWrap?.classList.add("hidden");
 
-    if (unsubscribeListings) { unsubscribeListings(); unsubscribeListings = null;}
-    modPanel.classList.add("hidden");
-    reportsList.innerHTML = "";
-    postsGrid.innerHTML = "";
-    listingsGrid.innerHTML = "";
-    jobsGrid.innerHTML = "";    
-    hearPostsGrid.innerHTML = "";
+    if (registerName) registerName.value = "";
+    if (registerEmail) registerEmail.value = "";
+    if (registerPass) registerPass.value = "";
+    if (loginEmail) loginEmail.value = "";
+    if (loginPass) loginPass.value = "";
+    if (registerMsg) registerMsg.textContent = "";
+    if (loginMsg) loginMsg.textContent = "";
+    if (profileMsg) profileMsg.textContent = "";
   }
 });
+
+// ===============================================
+// ACTION BUTTONS — contextual per section
+// ===============================================
+function addActionButtons(card, collectionName, postId, opts) {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const {
+    attendeesField = "attendees",
+    attendeesLabel = "Interested",
+    showReply = true,
+    showInterested = true,
+    showExtra = null,
+    extraLabel = "",
+    extraField = "",
+    isMine = false
+  } = opts;
+
+  const btnRow = document.createElement("div");
+  btnRow.className = "action-btn-row";
+  btnRow.style.cssText = "display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;";
+
+  // Reply button — opens private message to poster
+  if (showReply && !isMine) {
+    const replyBtn = document.createElement("button");
+    replyBtn.textContent = `💬 ${l.comment_count || 0}`;
+    replyBtn.className = "btn-small";
+    replyBtn.addEventListener("click", () => {
+      openMessageDialog(opts.messageContext);
+    });
+    btnRow.appendChild(replyBtn);
+  }
+
+  // Interested button — adds to attendees array
+  if (showInterested && !isMine) {
+    const interestedBtn = document.createElement("button");
+    interestedBtn.textContent = `👍 ${attendeesLabel}`;
+    interestedBtn.className = "btn-small";
+    interestedBtn.addEventListener("click", async () => {
+      try {
+        await updateDoc(doc(db, collectionName, postId), {
+          [attendeesField]: arrayUnion(user.uid)
+        });
+        // Reload the specific section
+        if (opts.reload) opts.reload();
+      } catch (e) {
+        alert("Error: " + e.message);
+      }
+    });
+    btnRow.appendChild(interestedBtn);
+  }
+
+  // Extra button (Going for Events, Aware for Alerts, Like for Hear Me Out)
+  if (showExtra && !isMine) {
+    const extraBtn = document.createElement("button");
+    extraBtn.textContent = `✨ ${extraLabel}`;
+    extraBtn.className = "btn-small";
+    extraBtn.addEventListener("click", async () => {
+      try {
+        await updateDoc(doc(db, collectionName, postId), {
+          [extraField]: arrayUnion(user.uid)
+        });
+        if (opts.reload) opts.reload();
+      } catch (e) {
+        alert("Error: " + e.message);
+      }
+    });
+    btnRow.appendChild(extraBtn);
+  }
+
+  if (btnRow.children.length > 0) {
+    card.appendChild(btnRow);
+  }
+}
+
