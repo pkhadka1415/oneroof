@@ -673,7 +673,47 @@
           <button id="modal-message-btn">💬 Message</button>
           <button id="modal-vouch-btn" class="hidden">🤝 Vouch</button>
           <button id="modal-follow-btn" class="hidden">+ Follow</button>
+          <button id="modal-report-btn" class="btn-small btn-muted">🚩 Report</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Vouch dialog -->
+    <div id="vouch-dialog" class="dialog-overlay hidden">
+      <div class="dialog-card">
+        <h3 id="vouch-dialog-title">Vouch for this person</h3>
+        <p class="section-hint">Your vouch builds trust in the OneRoof community.</p>
+
+        <p class="interests-label">How was your experience?</p>
+        <div class="diamond-picker" id="diamond-picker">
+          <button type="button" class="diamond-btn" data-value="1" aria-label="1 diamond">💎</button>
+          <button type="button" class="diamond-btn" data-value="2" aria-label="2 diamonds">💎</button>
+          <button type="button" class="diamond-btn" data-value="3" aria-label="3 diamonds">💎</button>
+          <button type="button" class="diamond-btn" data-value="4" aria-label="4 diamonds">💎</button>
+          <button type="button" class="diamond-btn" data-value="5" aria-label="5 diamonds">💎</button>
+          <span id="diamond-value-label">0/5</span>
+        </div>
+
+        <p class="interests-label" style="margin-top: 16px;">How do you know this person?</p>
+        <select id="vouch-context">
+          <option value="sublease">🏡 Sublease / Housing</option>
+          <option value="roommate">🏠 Roommate</option>
+          <option value="cooking-group">🍽️ Cooking group</option>
+          <option value="event">🎉 Event / Meetup</option>
+          <option value="study">📚 Study partner</option>
+          <option value="job-referral">💼 Job referral</option>
+          <option value="ride">🚗 Ride</option>
+          <option value="help">🆘 Help / Favor</option>
+        </select>
+
+        <p class="interests-label">Your vouch message</p>
+        <textarea id="vouch-message" placeholder="Say something specific about your experience..." rows="3"></textarea>
+
+        <div class="dialog-actions">
+          <button id="vouch-cancel-btn" class="btn-muted">Cancel</button>
+          <button id="vouch-submit-btn">Post Vouch</button>
+        </div>
+        <p id="vouch-msg" class="msg"></p>
       </div>
     </div>
 

@@ -415,6 +415,7 @@ saveProfileBtn?.addEventListener("click", async () => {
   const user = auth.currentUser;
   if (!user) return;
 
+  const newName = profileName?.value.trim();
   const interests = [];
   document.querySelectorAll(".interests-grid input:checked").forEach((cb) => interests.push(cb.value));
 
@@ -423,11 +424,22 @@ saveProfileBtn?.addEventListener("click", async () => {
 
   try {
     await setDoc(doc(db, "users", user.uid), {
+      name: newName,
       school: profileSchool?.value.trim(),
       city: profileCity?.value.trim(),
       bio: profileBio?.value.trim(),
       interests
     }, { merge: true });
+
+    // Update Firebase Auth displayName
+    if (newName && newName !== user.displayName) {
+      await updateProfile(user, { displayName: newName });
+    }
+
+    // Update visible name immediately
+    if (userName) userName.textContent = newName || "friend";
+    if (headerUserName) headerUserName.textContent = (newName || "User").split(" ")[0];
+    if (dropdownName) dropdownName.textContent = newName || "User";
 
     renderProfileView();
     profileEditMode?.classList.add("hidden");
@@ -570,7 +582,7 @@ function renderProfileView() {
         `<span class="interest-pill">${icons[i] || "•"} ${escapeHtml(i)}</span>`
       ).join("");
     } else {
-      interestsEl.textContent = '<span style="color:var(--text-muted);font-size:13px;">Add interests to connect with people who share them</span>';
+      interestsEl.innerHTML = '<span style="color:var(--text-muted);font-size:13px;">Add interests to connect with people who share them</span>';
     }
   }
 }
@@ -890,9 +902,44 @@ document.getElementById("modal-message-btn")?.addEventListener("click", () => {
   });
 });
 
+document.getElementById("modal-report-btn")?.addEventListener("click", () => {
+  if (!currentProfileUid) return;
+  const reason = prompt(
+    "Report this user?\n\n1. Spam\n2. Scam\n3. Inappropriate\n4. Harassment\n5. Other\n\nEnter number (1-5):"
+  );
+  if (!reason) return;
+  const reasons = ["Spam", "Scam", "Inappropriate", "Harassment", "Other"];
+  const idx = parseInt(reason.trim(), 10) - 1;
+  if (isNaN(idx) || idx < 0 || idx >= reasons.length) return;
+  
+  addDoc(collection(db, "reports"), {
+    reporter_id: auth.currentUser.uid,
+    reporter_email: auth.currentUser.email || "",
+    post_id: currentProfileUid,
+    post_type: "profile",
+    post_title: `User: ${currentProfileName}`,
+    post_owner_id: currentProfileUid,
+    reason: reasons[idx],
+    status: "open",
+    createdAt: Date.now()
+  }).then(() => {
+    alert("Report submitted. Thank you.");
+    closeUserProfile();
+  }).catch((e) => {
+    alert("Error: " + e.message);
+  });
+});
+
 // ===============================================
 // 10. VOUCH SYSTEM — diamonds + vouches
 // ===============================================
+document.getElementById("modal-vouch-btn")?.addEventListener("click", () => {
+  if (!currentProfileUid) return;
+  const name = currentProfileName;
+  closeUserProfile();
+  openVouchDialog(currentProfileUid, name);
+});
+
 const VOUCH_CONTEXTS = {
   "sublease": "🏡 Sublease",
   "roommate": "🏠 Roommate",
@@ -974,6 +1021,104 @@ async function updateOwnVouches(uid) {
     if (section) section.classList.add("hidden");
   }
 }
+
+// ===============================================
+// 10a. VOUCH DIALOG — create a new vouch
+// ===============================================
+let selectedDiamonds = 0;
+let currentVouchTarget = null;
+
+function openVouchDialog(uid, name) {
+  if (!auth.currentUser || auth.currentUser.uid === uid) {
+    alert("You can't vouch for yourself.");
+    return;
+  }
+
+  currentVouchTarget = { uid, name };
+
+  const dialog = document.getElementById("vouch-dialog");
+  const title = document.getElementById("vouch-dialog-title");
+  if (title) title.textContent = `Vouch for ${name || "this person"}`;
+  if (dialog) dialog.classList.remove("hidden");
+
+  // Reset the diamond picker
+  selectedDiamonds = 0;
+  document.querySelectorAll("#diamond-picker .diamond-btn").forEach((b) => b.classList.remove("selected"));
+  const label = document.getElementById("diamond-value-label");
+  if (label) label.textContent = "0/5";
+
+  // Reset the form
+  const msg = document.getElementById("vouch-msg");
+  if (msg) msg.textContent = "";
+  const msgText = document.getElementById("vouch-message");
+  if (msgText) msgText.value = "";
+}
+
+function closeVouchDialog() {
+  document.getElementById("vouch-dialog")?.classList.add("hidden");
+  currentVouchTarget = null;
+}
+
+// Diamond picker — click to select
+document.querySelectorAll("#diamond-picker .diamond-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    selectedDiamonds = Number(btn.dataset.value);
+    document.querySelectorAll("#diamond-picker .diamond-btn").forEach((b) => {
+      const v = Number(b.dataset.value);
+      b.classList.toggle("selected", v <= selectedDiamonds);
+    });
+    const label = document.getElementById("diamond-value-label");
+    if (label) label.textContent = `${selectedDiamonds}/5`;
+  });
+});
+
+// Submit vouch
+document.getElementById("vouch-submit-btn")?.addEventListener("click", async () => {
+  if (!currentVouchTarget) return;
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const context = document.getElementById("vouch-context")?.value || "help";
+  const message = document.getElementById("vouch-message")?.value.trim();
+  const msgEl = document.getElementById("vouch-msg");
+  const submitBtn = document.getElementById("vouch-submit-btn");
+
+  if (selectedDiamonds === 0) {
+    if (msgEl) { msgEl.textContent = "Pick a diamond rating."; msgEl.style.color = "var(--error)"; }
+    return;
+  }
+  if (!message) {
+    if (msgEl) { msgEl.textContent = "Write a short message."; msgEl.style.color = "var(--error)"; }
+    return;
+  }
+
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Posting..."; }
+
+  try {
+    await addDoc(collection(db, "vouches"), {
+      from_user: user.uid,
+      from_name: user.displayName || "user",
+      to_user: currentVouchTarget.uid,
+      rating: selectedDiamonds,
+      context,
+      message,
+      createdAt: Date.now()
+    });
+
+    if (msgEl) { msgEl.textContent = "Vouch posted! ✅"; msgEl.style.color = "var(--success)"; }
+    setTimeout(() => { closeVouchDialog(); }, 700);
+  } catch (e) {
+    if (msgEl) { msgEl.textContent = "Error: " + e.message; msgEl.style.color = "var(--error)"; }
+  } finally {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Post Vouch"; }
+  }
+});
+
+// Cancel button
+document.getElementById("vouch-cancel-btn")?.addEventListener("click", closeVouchDialog);
+document.getElementById("vouch-dialog")?.addEventListener("click", (e) => {
+  if (e.target.id === "vouch-dialog") closeVouchDialog();
+});
 
 // ===============================================
 // 11. SIMPLE INBOX — MESSAGING
@@ -2460,79 +2605,3 @@ onAuthStateChanged(auth, async (user) => {
     if (profileMsg) profileMsg.textContent = "";
   }
 });
-
-// ===============================================
-// ACTION BUTTONS — contextual per section
-// ===============================================
-function addActionButtons(card, collectionName, postId, opts) {
-  const user = auth.currentUser;
-  if (!user) return;
-
-  const {
-    attendeesField = "attendees",
-    attendeesLabel = "Interested",
-    showReply = true,
-    showInterested = true,
-    showExtra = null,
-    extraLabel = "",
-    extraField = "",
-    isMine = false
-  } = opts;
-
-  const btnRow = document.createElement("div");
-  btnRow.className = "action-btn-row";
-  btnRow.style.cssText = "display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;";
-
-  // Reply button — opens private message to poster
-  if (showReply && !isMine) {
-    const replyBtn = document.createElement("button");
-    replyBtn.textContent = `💬 ${l.comment_count || 0}`;
-    replyBtn.className = "btn-small";
-    replyBtn.addEventListener("click", () => {
-      openMessageDialog(opts.messageContext);
-    });
-    btnRow.appendChild(replyBtn);
-  }
-
-  // Interested button — adds to attendees array
-  if (showInterested && !isMine) {
-    const interestedBtn = document.createElement("button");
-    interestedBtn.textContent = `👍 ${attendeesLabel}`;
-    interestedBtn.className = "btn-small";
-    interestedBtn.addEventListener("click", async () => {
-      try {
-        await updateDoc(doc(db, collectionName, postId), {
-          [attendeesField]: arrayUnion(user.uid)
-        });
-        // Reload the specific section
-        if (opts.reload) opts.reload();
-      } catch (e) {
-        alert("Error: " + e.message);
-      }
-    });
-    btnRow.appendChild(interestedBtn);
-  }
-
-  // Extra button (Going for Events, Aware for Alerts, Like for Hear Me Out)
-  if (showExtra && !isMine) {
-    const extraBtn = document.createElement("button");
-    extraBtn.textContent = `✨ ${extraLabel}`;
-    extraBtn.className = "btn-small";
-    extraBtn.addEventListener("click", async () => {
-      try {
-        await updateDoc(doc(db, collectionName, postId), {
-          [extraField]: arrayUnion(user.uid)
-        });
-        if (opts.reload) opts.reload();
-      } catch (e) {
-        alert("Error: " + e.message);
-      }
-    });
-    btnRow.appendChild(extraBtn);
-  }
-
-  if (btnRow.children.length > 0) {
-    card.appendChild(btnRow);
-  }
-}
-
